@@ -123,16 +123,12 @@ export function GKLayersModal({ modalsVisibility, GKLayersState }) {
       <div className="modal-content2">
         {isAdmin ?
           (<>
-            <div className="tab-content tab-content-border mb-2" id="nav-tabContent">
-              <div className="tab-pane fade show active" id="layer-edit" role="tabpanel" tabIndex="0">
-                <div className="row">
-                  <div className="col-2">
-                    Название:
-                  </div>
-                  <div className="col">
-                    <RichTextEditor editorState={GKLayerEditorState} setEditorState={setGKLayerEditorState} />
-                  </div>
-                </div>
+            <div className="row mb-2">
+              <div className="col-2">
+                Название:
+              </div>
+              <div className="col">
+                <RichTextEditor editorState={GKLayerEditorState} setEditorState={setGKLayerEditorState} />
               </div>
             </div>
             <div className="row mb-2">

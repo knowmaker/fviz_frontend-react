@@ -277,18 +277,14 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
             </div>
           </>) : (null)}
 
-        <div className="tab-content tab-content-border" id="nav-tabContent">
-          <div className="tab-pane fade show active" id="cell-edit" role="tabpanel" tabIndex="0">
-            <div className="row">
-              <div className="col-6">
-                <label className="form-label">Название</label>
-                <RichTextEditor editorState={cellEditorsStates.cellNameEditorState.value} setEditorState={cellEditorsStates.cellNameEditorState.set} readOnly={!isAdmin} />
-              </div>
-              <div className="col-6">
-                <label htmlFor="InputFirstName3" className="form-label">Единица измерения</label>
-                <RichTextEditor editorState={cellEditorsStates.cellUnitEditorState.value} setEditorState={cellEditorsStates.cellUnitEditorState.set} readOnly={!isAdmin} />
-              </div>
-            </div>
+        <div className="row">
+          <div className="col-6">
+            <label className="form-label">Название</label>
+            <RichTextEditor editorState={cellEditorsStates.cellNameEditorState.value} setEditorState={cellEditorsStates.cellNameEditorState.set} readOnly={!isAdmin} />
+          </div>
+          <div className="col-6">
+            <label htmlFor="InputFirstName3" className="form-label">Единица измерения</label>
+            <RichTextEditor editorState={cellEditorsStates.cellUnitEditorState.value} setEditorState={cellEditorsStates.cellUnitEditorState.set} readOnly={!isAdmin} />
           </div>
         </div>
 
