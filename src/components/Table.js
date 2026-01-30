@@ -7,15 +7,14 @@ import LawsCanvas from './LawsCanvas';
 import { showMessage } from '../misc/message';
 import { isResponseSuccessful } from '../misc/api';
 import { convertToMLTI } from '../misc/converters';
-import {FormattedMessage,useIntl} from 'react-intl'
 import { convertMarkdownToEditorState } from '../misc/converters';
 
-// const Color = require('color');
+const API_BASE = () => process.env.REACT_APP_API_LINK;
 
 const rowCount = 21
 const cellCount = 20
 
-export default function TableUI({modalsVisibility, gkState, selectedCellState, revStates, selectedLawState,hoveredCellState,refTable,lawsGroupsState ,lawsState,currentLocaleState,lawEditorsStates,showModeState}) {
+export default function TableUI({modalsVisibility, gkState, selectedCellState, revStates, selectedLawState,hoveredCellState,refTable,lawsGroupsState ,lawsState,lawEditorsStates,showModeState}) {
 
   const [once, setOnce] = useState(true);
   const tableState = useContext(TableContext)
@@ -34,7 +33,7 @@ export default function TableUI({modalsVisibility, gkState, selectedCellState, r
  
   return (
     <>
-      <Navbar revStates={revStates} modalsVisibility={modalsVisibility} selectedCell={selectedCellState.selectedCell} currentLocaleState={currentLocaleState}/>
+      <Navbar revStates={revStates} modalsVisibility={modalsVisibility} selectedCell={selectedCellState.selectedCell}/>
       <CellOptions selectedCellState={selectedCellState} gkColors={gkState.gkColors} revStates={revStates} modalsVisibility={modalsVisibility}/>
       <Table 
       gkColors={gkState.gkColors} 
@@ -60,20 +59,18 @@ function CellOptions({selectedCellState ,gkColors, revStates,modalsVisibility}) 
 
   const [cellAlternatives, setCellAlternatives] = useState(null);
 
-  const intl = useIntl()
-
   useEffect(() => {
     if (selectedCell && !modalsVisibility.editCellModalVisibility.isVisible) {
-      setStateFromGetAPI(setCellAlternatives,`${process.env.REACT_APP_API_LINK}/${intl.locale}/layers/${selectedCell.id_lt}`) 
+      setStateFromGetAPI(setCellAlternatives,`${API_BASE()}/layers/${selectedCell.id_lt}`)
     } else {setCellAlternatives(null)}
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCell,intl.locale]);
+  }, [selectedCell]);
 
   if (cellAlternatives !== null && selectedCell) {
 
     const emptyCellData = {id_lt:selectedCell.id_lt,id_value:-1,unit:"",l_indicate:selectedCell.l_indicate, t_indicate: selectedCell.t_indicate}  
-    const emptyCellShowData = {id_lt:selectedCell.id_lt,id_value:-1,unit:"",value_name:`«${intl.formatMessage({ id: `Скрыть`, defaultMessage: `Скрыть` })}»`}    
+    const emptyCellShowData = {id_lt:selectedCell.id_lt,id_value:-1,unit:"",value_name:"«Скрыть»"}    
 
     let cells = cellAlternatives.filter(cellData => cellData.id_value !== selectedCell.id_value).map(cellData => {
 
@@ -108,14 +105,14 @@ function CellOptions({selectedCellState ,gkColors, revStates,modalsVisibility}) 
       )  
     }
 
-    const cellOptions = cells.length !== 0 ? cells : intl.formatMessage({id:`Нет альтернативных ячеек`,defaultMessage: `Нет альтернативных ячеек`})
+    const cellOptions = cells.length !== 0 ? cells : "Нет альтернативных ячеек"
 
 
 
     return (
       <div className="data-window">
         <div className="data-window-top">
-        <span><FormattedMessage id='Другие уровни' defaultMessage="Другие уровни"/></span>
+        <span>Другие уровни</span>
         <button type="button" className="btn-close" onClick={() => setSelectedCell(null)}></button>
         </div>
         {cellOptions}
@@ -138,9 +135,8 @@ function LawOptions({lawsState,lawsGroupsState,selectedLawState,lawEditorsStates
   const userInfoState = useContext(UserProfile) 
   const headers = {
     Authorization: `Bearer ${userInfoState.userToken}`
-  }  
-  const intl = useIntl()
-  
+  }
+
   const selectLaw = async (selectedLaw) => {
 
     // get all cell Id's into an array
@@ -165,7 +161,7 @@ function LawOptions({lawsState,lawsGroupsState,selectedLawState,lawEditorsStates
     tableState.setTableData(newTable)
 
     // show message
-    showMessage(intl.formatMessage({id:`Закон выбран`,defaultMessage: `Закон выбран`}))
+    showMessage("Закон выбран")
 
   }
 
@@ -187,7 +183,7 @@ function LawOptions({lawsState,lawsGroupsState,selectedLawState,lawEditorsStates
     return null
   }
 
-  const lawOptions = [...lawsGroups,{ type_name:intl.formatMessage({id:`Без группы`,defaultMessage: `Без группы`}),id_type:null}].map((lawGroup) => {
+  const lawOptions = [...lawsGroups,{ type_name:"Без группы",id_type:null}].map((lawGroup) => {
 
   const lawsInThisGroup = lawsState.laws.filter(law => law.id_type === lawGroup.id_type)
       
@@ -196,7 +192,7 @@ function LawOptions({lawsState,lawsGroupsState,selectedLawState,lawEditorsStates
       return (
         <details key={lawGroup.id_type}>
         <summary>{lawGroup.type_name}</summary>
-        <FormattedMessage id='Законов нет' defaultMessage="Законов нет"/>
+        Законов нет
         </details>
       )
     }
@@ -224,7 +220,7 @@ function LawOptions({lawsState,lawsGroupsState,selectedLawState,lawEditorsStates
           <thead>
             <tr>
               <th scope="col">#</th>
-              <th scope="col"><FormattedMessage id='Название' defaultMessage="Название"/></th>
+              <th scope="col">Название</th>
               <th scope="col">ⓘ</th>
             </tr>
           </thead>
@@ -244,7 +240,7 @@ function LawOptions({lawsState,lawsGroupsState,selectedLawState,lawEditorsStates
 
       <div className="data-window data-window-left">
         <div className="data-window-top">
-        <span><FormattedMessage id='Выбор закона' defaultMessage="Выбор закона"/></span>
+        <span>Выбор закона</span>
         <button type="button" className="btn-close" onClick={() => {modalsVisibility.LawsMenuVisibility.setVisibility(false)}}></button>
         </div>
         {lawOptions}
@@ -268,11 +264,9 @@ const Table = forwardRef(({ gkColors, selectedCellState, hoveredCellState, selec
 
   const isLoaded = tableData.length !== 0 && gkColors.length !== 0 && emptyCells.length !== 0 
 
-  //const intl = useIntl()
-
   useEffect(() => {
 
-    setStateFromGetAPI(setEmptyCells, `${process.env.REACT_APP_API_LINK}/lt`)
+    setStateFromGetAPI(setEmptyCells, `${API_BASE()}/lt`)
 
   }, []);
 
@@ -486,16 +480,10 @@ export function Cell({cellFullData, cellRightClick, selectedCells, revStates, se
   const userInfoState = useContext(UserProfile)
   const headers = {
     Authorization: `Bearer ${userInfoState.userToken}`
-  }  
+  }
 
-  const intl = useIntl()
-
-
-
-
-  
   const handleCellRightClick = (event) => {
-    
+
     event.preventDefault()
     
 
@@ -543,7 +531,7 @@ export function Cell({cellFullData, cellRightClick, selectedCells, revStates, se
 
         if (!fourthCellData) {
           selectedLawState.setSelectedLaw({law_name: null,cells:[],id_type: null})
-          showMessage(intl.formatMessage({id:`Выбрана пустая ячейка`,defaultMessage: `Выбрана пустая ячейка`}),"error")
+          showMessage("Выбрана пустая ячейка","error")
   
           return
         }
@@ -570,7 +558,7 @@ export function Cell({cellFullData, cellRightClick, selectedCells, revStates, se
             lawEditorsStates.lawGroupEditorState.set(dublicateLaw.id_type)
   
   
-            showMessage(intl.formatMessage({id:`Закон существует`,defaultMessage: `Этот закон уже существует`}),"warn")
+            showMessage("Этот закон уже существует","warn")
   
   
             return
@@ -596,14 +584,14 @@ export function Cell({cellFullData, cellRightClick, selectedCells, revStates, se
 
         if (!isCorrectLaw) {
           selectedLawState.setSelectedLaw({law_name: null,cells:[],id_type: null})
-          showMessage(intl.formatMessage({id:"Данного закона не существует",defaultMessage: "Данного закона не существует"}),"error")
+          showMessage("Данного закона не существует","error")
           return
         }
 
         convertMarkdownToEditorState(lawEditorsStates.lawNameEditorState.set, "")
         lawEditorsStates.lawGroupEditorState.set(-1)
 
-        showMessage(intl.formatMessage({id:`Закон выбран`,defaultMessage: `Закон выбран`}))
+        showMessage("Закон выбран")
 
         if (lawsState.laws && userInfoState.userToken) {
         modalsVisibility.lawsModalVisibility.setVisibility(true)

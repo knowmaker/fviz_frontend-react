@@ -2,13 +2,14 @@ import React, { useEffect, useContext } from 'react';
 import setStateFromGetAPI, { postDataToAPI, putDataToAPI, deleteDataFromAPI } from '../misc/api.js';
 import { UserProfile } from '../misc/contexts.js';
 import { isResponseSuccessful } from '../misc/api.js';
-import { FormattedMessage, useIntl } from 'react-intl';
 import { checkLaw } from '../components/Table.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
 import { convertMarkdownFromEditorState } from '../pages/Home.js';
 import { showMessage } from '../misc/message.js';
 import { Modal } from './Modal.js';
 import { Button } from '../components/ButtonWithLoad.js';
+
+const API_BASE = () => process.env.REACT_APP_API_LINK;
 
 export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, lawsGroupsState, lawEditorsStates }) {
 
@@ -17,21 +18,6 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
     Authorization: `Bearer ${userInfoState.userToken}`
   };
 
-  // let isAdmin = false;
-  // if (userInfoState.userProfile) {
-  //   isAdmin = userInfoState.userProfile.role;
-  // }
-
-  const intl = useIntl();
-
-  // useEffect(() => {
-  //   if (modalsVisibility.lawsModalVisibility.isVisible === false) {
-  //     selectedLawState.setSelectedLaw({law_name: null,cells:[],id_type: null})
-  //     document.getElementById("InputLawName3").value = ""
-  //     document.getElementById("inputLawGroup3").value = -1
-  //   }
-  // }, [modalsVisibility.lawsModalVisibility.isVisible]);
-  //lawEditorsStates.lawGroupEditorState
   useEffect(() => {
     if (lawEditorsStates.lawGroupEditorState.value === null) {
       document.getElementById("inputLawGroup3").value = -1;
@@ -39,7 +25,6 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
     }
     if (lawEditorsStates.lawGroupEditorState.value) {
       document.getElementById("inputLawGroup3").value = lawEditorsStates.lawGroupEditorState.value;
-
     }
   }, [lawEditorsStates.lawGroupEditorState.value]);
 
@@ -53,22 +38,17 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
 
   const createLaw = async () => {
 
-    // check length of current law
     if (selectedLawState.selectedLaw.cells.length !== 4) {
-      showMessage(intl.formatMessage({ id: `Выбрать 4 ячейки`, defaultMessage: `Для закона нужно выбрать 4 ячейки` }));
+      showMessage("Для закона нужно выбрать 4 ячейки");
       return;
     }
 
-    // check if this law is correct
     if (!checkLaw(selectedLawState.selectedLaw.cells)) {
-      showMessage(intl.formatMessage({ id: `Выбран некорректный закон`, defaultMessage: `выбран некорректный закон` }));
+      showMessage("выбран некорректный закон");
       return;
     }
 
-    // get current selected cells
     const selectedLawCellId = selectedLawState.selectedLaw.cells.map(cell => cell.id_value);
-
-
 
     const newLaw = {
       law: {
@@ -81,43 +61,35 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
       }
     };
 
-    // send create group request
-    const newLawResponseData = await postDataToAPI(`${process.env.REACT_APP_API_LINK}/${intl.locale}/laws`, newLaw, headers);
+    const newLawResponseData = await postDataToAPI(`${API_BASE()}/laws`, newLaw, headers);
     if (!isResponseSuccessful(newLawResponseData)) {
       showMessage(newLawResponseData.data.error, "error");
       return;
     }
 
-    // update laws
-    setStateFromGetAPI(lawsState.setLaws, `${process.env.REACT_APP_API_LINK}/${intl.locale}/laws`, undefined, headers);
+    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws`, undefined, headers);
 
-    selectedLawState.setSelectedLaw(
-      {
-        ...newLawResponseData.data.data,
-        cells: selectedLawState.selectedLaw.cells,
-      } 
-    );
+    selectedLawState.setSelectedLaw({
+      ...newLawResponseData.data.data,
+      cells: selectedLawState.selectedLaw.cells,
+    });
 
-    // show message
-    showMessage(intl.formatMessage({ id: `Закон создан`, defaultMessage: `Закон создан` }));
+    showMessage("Закон создан");
 
   };
 
   const updateLaw = async () => {
 
-    // check length of current law
     if (selectedLawState.selectedLaw.cells.length !== 4) {
-      showMessage(intl.formatMessage({ id: `Выбрать 4 ячейки`, defaultMessage: `Для закона нужно выбрать 4 ячейки` }));
+      showMessage("Для закона нужно выбрать 4 ячейки");
       return;
     }
 
-    // check if this law is correct
     if (!checkLaw(selectedLawState.selectedLaw.cells)) {
-      showMessage(intl.formatMessage({ id: `Выбран некорректный закон`, defaultMessage: `выбран некорректный закон` }));
+      showMessage("выбран некорректный закон");
       return;
     }
 
-    // get current selected cells
     const selectedLawCellId = selectedLawState.selectedLaw.cells.map(cell => cell.id_value);
 
     const newLaw = {
@@ -131,47 +103,41 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
       }
     };
 
-    // send update request
-    const changedLawResponseData = await putDataToAPI(`${process.env.REACT_APP_API_LINK}/${intl.locale}/laws/${selectedLawState.selectedLaw.id_law}`, newLaw, headers);
+    const changedLawResponseData = await putDataToAPI(`${API_BASE()}/laws/${selectedLawState.selectedLaw.id_law}`, newLaw, headers);
     if (!isResponseSuccessful(changedLawResponseData)) {
       showMessage(changedLawResponseData.data.error, "error");
       return;
     }
 
-    // update laws
-    setStateFromGetAPI(lawsState.setLaws, `${process.env.REACT_APP_API_LINK}/${intl.locale}/laws`, undefined, headers);
+    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws`, undefined, headers);
 
-    // show message
-    showMessage(intl.formatMessage({ id: `Закон обновлён`, defaultMessage: `Закон обновлён` }));
+    showMessage("Закон обновлён");
 
   };
 
   const deleteLaw = async (e) => {
 
-    if (!window.confirm(intl.formatMessage({ id: `Подтверждение`, defaultMessage: `Вы уверены что хотите это сделать?` }))) {
+    if (!window.confirm("Вы уверены что хотите это сделать?")) {
       return;
     }
 
-    const law = selectedLawState.selectedLaw
+    const law = selectedLawState.selectedLaw;
 
-    // send delete law request
-    const lawDeleteResponseData = await deleteDataFromAPI(`${process.env.REACT_APP_API_LINK}/${intl.locale}/laws/${law.id_law}`, undefined, headers);
+    const lawDeleteResponseData = await deleteDataFromAPI(`${API_BASE()}/laws/${law.id_law}`, undefined, headers);
     if (!isResponseSuccessful(lawDeleteResponseData)) {
       showMessage(lawDeleteResponseData.data.error, "error");
       return;
     }
 
-    // update laws
-    setStateFromGetAPI(lawsState.setLaws, `${process.env.REACT_APP_API_LINK}/${intl.locale}/laws`, undefined, headers);
+    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws`, undefined, headers);
 
-    // show message
-    showMessage(intl.formatMessage({ id: `Закон удалён`, defaultMessage: `Закон удалён` }));
+    showMessage("Закон удалён");
 
     modalsVisibility.lawsModalVisibility.setVisibility(false)
 
   };
 
-  const chooseOption = <option key={-1} value={-1} dangerouslySetInnerHTML={{ __html: intl.formatMessage({ id: `Выберите опцию`, defaultMessage: `Выберите опцию` }) }} />;
+  const chooseOption = <option key={-1} value={-1}>Выберите опцию</option>;
 
   const lawsGroupList = lawsGroupsState.lawsGroups.map(lawGroup => {
 
@@ -194,14 +160,14 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
   return (
     <Modal
       modalVisibility={modalsVisibility.lawsModalVisibility}
-      title={intl.formatMessage({ id: `Законы`, defaultMessage: `Законы` })}
+      title="Законы"
       hasBackground={false}
       sizeX={600}
     >
       <div className="modal-content2">
         <div className="row mb-1">
           <div className="col-2">
-            <FormattedMessage id='Название' defaultMessage="Название" />:
+            Название:
           </div>
           <div className="col">
             <RichTextEditor editorState={lawEditorsStates.lawNameEditorState.value} setEditorState={lawEditorsStates.lawNameEditorState.set} />
@@ -209,7 +175,7 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
         </div>
         <div className="row">
           <div className="col-2">
-            <FormattedMessage id='Группы' defaultMessage="Группы" />:
+            Группы:
           </div>
           <div className="col">
             <select className="form-select" aria-label="Default select example" id='inputLawGroup3'>
@@ -219,7 +185,7 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
         </div>
         <div className="row">
           <div className="col-2">
-            <FormattedMessage id='Формулы' defaultMessage="Формулы" />:
+            Формулы:
           </div>
           <div className="col">
             <div className="" dangerouslySetInnerHTML={{ __html: lawFormulaSymbols }} />
@@ -227,7 +193,7 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
         </div>
         <div className="row">
           <div className="col-2 invisible">
-            <FormattedMessage id='Формулы' defaultMessage="Формулы" />:
+            Формулы:
           </div>
           <div className="col">
             <div className="" dangerouslySetInnerHTML={{ __html: lawFormulaNames }} />
@@ -236,10 +202,10 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
       </div>
 
       <div className="modal-footer2">
-        <Button type="button" className="btn btn-success me-1" onClick={(e) => saveButtonClick(e)}><FormattedMessage id='Сохранить' defaultMessage="Сохранить" /></Button>
+        <Button type="button" className="btn btn-success me-1" onClick={(e) => saveButtonClick(e)}>Сохранить</Button>
         {selectedLaw.id_law ?
           (<>
-            <Button type="button" className="btn btn-danger" onClick={(e) => deleteLaw(e)}><FormattedMessage id='Удалить' defaultMessage="Удалить" /></Button>
+            <Button type="button" className="btn btn-danger" onClick={(e) => deleteLaw(e)}>Удалить</Button>
           </>) : (null)}
       </div>
 

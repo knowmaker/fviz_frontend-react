@@ -3,7 +3,6 @@ import setStateFromGetAPI, { getDataFromAPI, postDataToAPI, putDataToAPI, delete
 import { UserProfile, TableContext } from '../misc/contexts.js';
 import { EditorState } from 'draft-js';
 import { isResponseSuccessful } from '../misc/api.js';
-import { FormattedMessage, useIntl } from 'react-intl';
 import { RichTextEditor } from '../components/RichTextEditor.js';
 import { convertMarkdownFromEditorState } from '../pages/Home.js';
 import { showMessage } from '../misc/message.js';
@@ -11,16 +10,15 @@ import { convertMarkdownToEditorState } from '../misc/converters.js';
 import { Modal } from './Modal.js';
 import { Button } from '../components/ButtonWithLoad.js';
 
-export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, tableViewState, revStates, selectedLawState }) {
+const API_BASE = () => process.env.REACT_APP_API_LINK;
 
+export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, tableViewState, revStates, selectedLawState }) {
 
   const userInfoState = useContext(UserProfile);
   const tableState = useContext(TableContext);
   const headers = {
     Authorization: `Bearer ${userInfoState.userToken}`
   };
-
-  const intl = useIntl();
 
   const [tableViewEditorState, setTableViewEditorState] = useState(EditorState.createEmpty());
 
@@ -30,7 +28,7 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
     } else {
       convertMarkdownToEditorState(setTableViewEditorState, tableViewState.tableView.title)
     }
-  }, [modalsVisibility.tableViewsModalVisibility.isVisible,tableViewState.tableView.title]);
+  }, [modalsVisibility.tableViewsModalVisibility.isVisible, tableViewState.tableView.title]);
 
 
   const selectTableView = async (tableView) => {
@@ -38,31 +36,26 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
     revStates.setUndoStack([])
     revStates.setRedoStack([])
 
-    selectedLawState.setSelectedLaw({law_name: null,cells:[],id_type: null})
+    selectedLawState.setSelectedLaw({ law_name: null, cells: [], id_type: null })
 
-    // send full table view data request
-    const tableViewDataResponse = await getDataFromAPI(`${process.env.REACT_APP_API_LINK}/${intl.locale}/active_view/${tableView.id_repr}`, headers);
+    const tableViewDataResponse = await getDataFromAPI(`${API_BASE()}/active_view/${tableView.id_repr}`, headers);
     if (!isResponseSuccessful(tableViewDataResponse)) {
       showMessage(tableViewDataResponse.data.error, "error");
       return;
     }
     const tableViewData = tableViewDataResponse.data.data;
 
-    // set it as selected
     tableViewState.setTableView({ id_repr: tableView.id_repr, title: tableViewData.title });
     tableState.setTableData(tableViewData.active_quantities);
 
-    // change input to current table view name
     convertMarkdownToEditorState(setTableViewEditorState, tableViewData.title);
 
   };
 
   const updateTableView = async () => {
 
-    // get all current visible cells ids
     const cellIds = Object.values(tableState)[0].map(cell => cell.id_value).filter(id => id !== -1);
 
-    // get new table view name
     const tableViewTitle = convertMarkdownFromEditorState(tableViewEditorState);
 
     const newTableView = {
@@ -70,67 +63,55 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
       active_quantities: cellIds,
     };
 
-    // send table view update request
-    const changedTableViewResponseData = await putDataToAPI(`${process.env.REACT_APP_API_LINK}/${intl.locale}/represents/${tableViewState.tableView.id_repr}`, newTableView, headers);
+    const changedTableViewResponseData = await putDataToAPI(`${API_BASE()}/represents/${tableViewState.tableView.id_repr}`, newTableView, headers);
     if (!isResponseSuccessful(changedTableViewResponseData)) {
       showMessage(changedTableViewResponseData.data.error, "error");
       return;
     }
 
-    // update current table views
-    setStateFromGetAPI(setTableViews, `${process.env.REACT_APP_API_LINK}/${intl.locale}/represents`, undefined, headers);
+    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents`, undefined, headers);
 
-    // show message
-    showMessage(intl.formatMessage({ id: `Представление обновлено`, defaultMessage: `Представление обновлено` }));
+    showMessage("Представление обновлено");
 
   };
 
   const deleteTableView = async (tableView) => {
 
-    if (!window.confirm(intl.formatMessage({ id: `Подтверждение`, defaultMessage: `Вы уверены что хотите это сделать?` }))) {
+    if (!window.confirm("Вы уверены что хотите это сделать?")) {
       return;
     }
 
-    // send delete request
-    const tableViewDeleteResponseData = await deleteDataFromAPI(`${process.env.REACT_APP_API_LINK}/${intl.locale}/represents/${tableView.id_repr}`, undefined, headers);
+    const tableViewDeleteResponseData = await deleteDataFromAPI(`${API_BASE()}/represents/${tableView.id_repr}`, undefined, headers);
     if (!isResponseSuccessful(tableViewDeleteResponseData)) {
       showMessage(tableViewDeleteResponseData.data.error, "error");
       return;
     }
 
-    // update current table views
-    setStateFromGetAPI(setTableViews, `${process.env.REACT_APP_API_LINK}/${intl.locale}/represents`, undefined, headers);
+    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents`, undefined, headers);
 
-    // show message
-    showMessage(intl.formatMessage({ id: `Представление удалено`, defaultMessage: `Представление удалено` }));
+    showMessage("Представление удалено");
 
   };
 
   const createTableView = async () => {
 
-    // fix filter later
-    // get all current visible cells ids
     const cellIds = Object.values(tableState)[0].map(cell => cell.id_value).filter(id => id !== -1);
 
-    // get new table view name
     const tableViewTitle = convertMarkdownFromEditorState(tableViewEditorState);
 
     const newTableView = {
       title: tableViewTitle,
       active_quantities: cellIds,
     };
-    // send table view create request
-    const newTableViewResponseData = await postDataToAPI(`${process.env.REACT_APP_API_LINK}/${intl.locale}/represents`, newTableView, headers);
+    const newTableViewResponseData = await postDataToAPI(`${API_BASE()}/represents`, newTableView, headers);
     if (!isResponseSuccessful(newTableViewResponseData)) {
       showMessage(newTableViewResponseData.data.error, "error");
       return;
     }
 
-    // update current table views
-    setStateFromGetAPI(setTableViews, `${process.env.REACT_APP_API_LINK}/${intl.locale}/represents`, undefined, headers);
+    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents`, undefined, headers);
 
-    // show message
-    showMessage(intl.formatMessage({ id: `Представление создано`, defaultMessage: `Представление создано` }));
+    showMessage("Представление создано");
 
   };
 
@@ -157,7 +138,7 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
   return (
     <Modal
       modalVisibility={modalsVisibility.tableViewsModalVisibility}
-      title={intl.formatMessage({ id: `Представления ФВ`, defaultMessage: `Представления ФВ` })}
+      title="Представления ФВ"
       hasBackground={false}
       sizeX={600}
     >
@@ -165,25 +146,25 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
 
         <div className="row">
           <div className="col-2">
-            <FormattedMessage id='Название' defaultMessage="Название" />:
+            Название:
           </div>
           <div className="col-5">
             <RichTextEditor editorState={tableViewEditorState} setEditorState={setTableViewEditorState} />
           </div>
           <div className="col-2">
-            <Button type="button" className="btn btn-success" onClick={(e) => createTableView(e)}><FormattedMessage id='Создать' defaultMessage="Создать" /></Button>
+            <Button type="button" className="btn btn-success" onClick={(e) => createTableView(e)}>Создать</Button>
           </div>
           <div className="col-3">
-            <Button type="button" className="btn btn-info" onClick={(e) => updateTableView(e)}><FormattedMessage id='Обновить' defaultMessage="Обновить" /></Button>
+            <Button type="button" className="btn btn-info" onClick={(e) => updateTableView(e)}>Обновить</Button>
           </div>
         </div>
         <table className="table">
           <thead>
             <tr>
               <th scope="col">#</th>
-              <th scope="col"><FormattedMessage id='Название' defaultMessage="Название" /></th>
-              <th scope="col"><FormattedMessage id='Выбрать' defaultMessage="Выбрать" /></th>
-              <th scope="col"><FormattedMessage id='Удалить' defaultMessage="Удалить" /></th>
+              <th scope="col">Название</th>
+              <th scope="col">Выбрать</th>
+              <th scope="col">Удалить</th>
             </tr>
           </thead>
           <tbody>

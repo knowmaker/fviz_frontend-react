@@ -1,17 +1,13 @@
 import React from 'react';
 import { Editor } from 'react-draft-wysiwyg';
-import { useIntl } from 'react-intl';
 
 
 export function RichTextEditor({ editorState, setEditorState, readOnly = false }) {
-
-  const intl = useIntl();
 
   const onEditorStateChange = (editorState) => {
     setEditorState(editorState);
   };
 
-  // settings for editor
   return (
     <Editor
       editorState={editorState}
@@ -29,7 +25,7 @@ export function RichTextEditor({ editorState, setEditorState, readOnly = false }
         },
         emoji: {
           icon: '/svg.svg',
-          title: 'Alphabet',
+          title: 'Алфавит',
           emojis: [
             "Α", "Β", "Γ", "Δ", "Ε", "Ζ", "Η", "Θ", "Ι", "Κ", "Λ", "Μ",
             "Ν", "Ξ", "Ο", "Π", "Ρ", "Σ", "Τ", "Υ", "Φ", "Χ", "Ψ", "Ω",

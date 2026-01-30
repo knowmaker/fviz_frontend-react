@@ -11,12 +11,6 @@ import { useDownloadableScreenshot } from '../misc/Screenshot.js';
 import draftToMarkdown from 'draftjs-to-markdown';
 import { isResponseSuccessful } from '../misc/api';
 
-import {IntlProvider} from 'react-intl'
-import {createIntl} from 'react-intl'
-// const Color = require('color');
-
-import translationEN from '../compiled-lang/en.json';
-import translationRU from '../compiled-lang/ru.json';
 import { EditCellModal } from '../modals/EditCellModal';
 import { EditProfileModal } from '../modals/EditProfileModal';
 import { EditLawsModal } from '../modals/LawsModal';
@@ -28,63 +22,38 @@ import { GKLayersImage } from '../modals/GKLayersImageModal';
 import { convertMarkdownToEditorState } from '../misc/converters';
 import { showMessage } from '../misc/message';
 
-function getTranslationMessages(locale) {
-
-
-  if (locale === "en") {
-    return translationEN
-  }
-  if (locale === "ru") {
-    return translationRU
-  }
-}
+const API_BASE = () => process.env.REACT_APP_API_LINK;
 
 export default function Home() {
 
   const [userToken, setUserToken] = useState(null)
   const [userProfile, setUserProfile] = useState(null)
-  
+
   const userInfoState = {userToken, setUserToken,userProfile, setUserProfile}
-
-  const [currentLocale, setCurrentLocale] = useState("ru")
-  
-  const currentLocaleState = {currentLocale, setCurrentLocale}
-  const translatedMessages = getTranslationMessages(currentLocale)
-
-
-  const intl = createIntl({
-    locale: currentLocale,
-    messages: translatedMessages,
-  })
 
   useEffect(() => {
 
     if (userToken) {
 
-      // set header for API queries
       const headers = {
         Authorization: `Bearer ${userToken}`
-      }    
+      }
 
-      // get all required data
-      setStateFromGetAPI(setUserProfile, `${process.env.REACT_APP_API_LINK}/${intl.locale}/users/profile`, undefined, headers )
-      setStateFromGetAPI(setGKLayers,`${process.env.REACT_APP_API_LINK}/${intl.locale}/gk`,undefined,headers)
-      setStateFromGetAPI(setTableViews, `${process.env.REACT_APP_API_LINK}/${intl.locale}/represents`,undefined,headers)
-      // fix later
-      setStateFromGetAPI(setLaws, `${process.env.REACT_APP_API_LINK}/${intl.locale}/laws`,undefined,headers)
-      setStateFromGetAPI(setLawsGroups, `${process.env.REACT_APP_API_LINK}/${intl.locale}/law_types`,undefined,headers)
-      
-      setStateFromGetAPI(setFullTableData,`${process.env.REACT_APP_API_LINK}/${intl.locale}/active_view`,undefined,headers)
+      setStateFromGetAPI(setUserProfile, `${API_BASE()}/users/profile`, undefined, headers )
+      setStateFromGetAPI(setGKLayers,`${API_BASE()}/gk`,undefined,headers)
+      setStateFromGetAPI(setTableViews, `${API_BASE()}/represents`,undefined,headers)
+      setStateFromGetAPI(setLaws, `${API_BASE()}/laws`,undefined,headers)
+      setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_types`,undefined,headers)
 
-      // set up localstorage to authenticate automatically
+      setStateFromGetAPI(setFullTableData,`${API_BASE()}/active_view`,undefined,headers)
+
       localStorage.setItem('token', userToken);
 
     } else {
-      // if there is no user token delete user profile
       setUserProfile(null)
       const storageToken = localStorage.getItem('token');
       if (!storageToken) {
-        setStateFromGetAPI(setFullTableData,`${process.env.REACT_APP_API_LINK}/${intl.locale}/active_view`,undefined,undefined)
+        setStateFromGetAPI(setFullTableData,`${API_BASE()}/active_view`,undefined,undefined)
         console.log()
       }
     }
@@ -95,14 +64,11 @@ export default function Home() {
 
   useEffect(() => {
 
-    // if user profile is not null set edit form
     if (userProfile) {
       document.getElementById("InputEmail3").value = userProfile.email
       document.getElementById("InputFirstName3").value = userProfile.first_name
       document.getElementById("InputLastName3").value = userProfile.last_name
       document.getElementById("InputPatronymic3").value = userProfile.patronymic
-      document.getElementById("inputLocale").value = userProfile.locale
-      setCurrentLocale(userProfile.locale)
     } else {
       document.getElementById("InputEmail3").value = ""
       document.getElementById("InputFirstName3").value = ""
@@ -130,7 +96,7 @@ export default function Home() {
 
     const [isLawsGroupsModalVisible, setLawsGroupsModalVisibility] = useState(false);
     const lawsGroupsModalVisibility = {isVisible: isLawsGroupsModalVisible, setVisibility: setLawsGroupsModalVisibility}
-        
+
     const [isGKColorsEditModalVisible, setGKColorsEditModalVisibility] = useState(false);
     const GKColorsEditModalVisibility = {isVisible: isGKColorsEditModalVisible, setVisibility: setGKColorsEditModalVisibility}
 
@@ -153,38 +119,34 @@ export default function Home() {
     const [GKLayers, setGKLayers] = useState([]);
     const GKLayersState = {gkColors: GKLayers, setGkColors: setGKLayers}
 
-    const [tableView, setTableView] = useState({id_repr:1,title:intl.formatMessage({id:`Базовое`,defaultMessage: `Базовое`})}); 
+    const [tableView, setTableView] = useState({id_repr:1,title:"Базовое"});
     const tableViewState = {tableView,setTableView}
 
     useEffect(() => {
 
-      // get all required localized data without authorization
-      setStateFromGetAPI(setGKLayers,`${process.env.REACT_APP_API_LINK}/${intl.locale}/gk`,undefined,undefined)
-  
+      setStateFromGetAPI(setGKLayers,`${API_BASE()}/gk`,undefined,undefined)
+
       if (userToken) {
-  
-        // set header for API queries
+
         const headers = {
           Authorization: `Bearer ${userToken}`
-        }    
-  
-        
-        // get all required localized data
-        setStateFromGetAPI(setTableViews, `${process.env.REACT_APP_API_LINK}/${intl.locale}/represents`,undefined,headers)
-        setStateFromGetAPI(setLaws, `${process.env.REACT_APP_API_LINK}/${intl.locale}/laws`,undefined,headers)
-        setStateFromGetAPI(setLawsGroups, `${process.env.REACT_APP_API_LINK}/${intl.locale}/law_types`,undefined,headers)
-        setStateFromGetAPI(setFullTableData,`${process.env.REACT_APP_API_LINK}/${intl.locale}/active_view/${tableView.id_repr}`,undefined,headers)
-  
-  
+        }
+
+        setStateFromGetAPI(setTableViews, `${API_BASE()}/represents`,undefined,headers)
+        setStateFromGetAPI(setLaws, `${API_BASE()}/laws`,undefined,headers)
+        setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_types`,undefined,headers)
+        setStateFromGetAPI(setFullTableData,`${API_BASE()}/active_view/${tableView.id_repr}`,undefined,headers)
+
+
       } else {
         const storageToken = localStorage.getItem('token');
         if (!storageToken) {
-          setStateFromGetAPI(setFullTableData,`${process.env.REACT_APP_API_LINK}/${intl.locale}/active_view`,undefined,undefined)
+          setStateFromGetAPI(setFullTableData,`${API_BASE()}/active_view`,undefined,undefined)
         }
       }
-  
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentLocale]);
+    }, []);
 
 
     const setFullTableData = (result) => {
@@ -192,26 +154,25 @@ export default function Home() {
       setTableData(result.active_quantities)
       setTableView({id_repr:result.id_repr,title:result.title})
     }
-    // get table and layers when page is loaded
+
     useEffect(() => {
-      
-      setStateFromGetAPI(setGKLayers,`${process.env.REACT_APP_API_LINK}/${intl.locale}/gk`)
+
+      setStateFromGetAPI(setGKLayers,`${API_BASE()}/gk`)
 
       async function logInByLocalStorage() {
-        
+
         const storageToken = localStorage.getItem('token');
         if (storageToken) {
           const headers = {
             Authorization: `Bearer ${storageToken}`
-          }   
-  
-          const profileResponseData = await getDataFromAPI(`${process.env.REACT_APP_API_LINK}/${intl.locale}/users/profile`,headers)
+          }
+
+          const profileResponseData = await getDataFromAPI(`${API_BASE()}/users/profile`,headers)
           if (!isResponseSuccessful(profileResponseData)) {
             localStorage.removeItem('token')
-            //setStateFromGetAPI(setFullTableData,`${process.env.REACT_APP_API_LINK}/${intl.locale}/active_view`)
             return
           }
-          showMessage(intl.formatMessage({id:`Авторизация успешна`,defaultMessage: `Авторизация успешна`}))
+          showMessage("Авторизация успешна")
 
           setUserToken(storageToken)
 
@@ -221,19 +182,16 @@ export default function Home() {
 
       }
       logInByLocalStorage()
-  
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
 
 
-  
-
     const [selectedCell, setSelectedCell] = useState(null);
     const selectedCellState={selectedCell, setSelectedCell}
 
 
-    
     const [hoveredCell, setHoveredCell] = useState(null);
     const hoveredCellState = {hoveredCell, setHoveredCell}
 
@@ -265,7 +223,7 @@ export default function Home() {
     const lawGroupEditorState = {value: lawGroupEditor,set: setLawGroupEditor}
 
     const lawEditorsStates = {lawNameEditorState,lawGroupEditorState}
-    
+
     const [tableViews, setTableViews] = useState(null)
     const [laws, setLaws] = useState(null)
     const lawsState = {laws, setLaws}
@@ -281,10 +239,8 @@ export default function Home() {
 
     useEffect(() => {
 
-      // add key handler for special actions
       const keyDownHandler = event => {
 
-        // when escape pressed deselect any law
         if (event.key === 'Escape') {
           event.preventDefault();
           setSelectedLaw({law_name: null,cells:[],id_type: null})
@@ -292,27 +248,24 @@ export default function Home() {
         }
       };
       document.addEventListener('keydown', keyDownHandler);
-  
+
       return () => {
         document.removeEventListener('keydown', keyDownHandler);
       };
 
     }, []);
 
-    
 
     useEffect(() => {
 
-      // if selected cell changed
       async function setSelectedCell() {
         if (selectedCell) {
-         
-          // if it is an empty cell
+
           if (selectedCell.id_value === -1) {
 
-            convertMarkdownToEditorState(setCellNameEditor, selectedCell.value_name ? selectedCell.value_name :"") 
-            convertMarkdownToEditorState(setCellSymbolEditor, selectedCell.symbol ? selectedCell.symbol :"") 
-            convertMarkdownToEditorState(setCellUnitEditor, selectedCell.unit ? selectedCell.unit :"") 
+            convertMarkdownToEditorState(setCellNameEditor, selectedCell.value_name ? selectedCell.value_name :"")
+            convertMarkdownToEditorState(setCellSymbolEditor, selectedCell.symbol ? selectedCell.symbol :"")
+            convertMarkdownToEditorState(setCellUnitEditor, selectedCell.unit ? selectedCell.unit :"")
             document.getElementById("inputL3").value = selectedCell.l_indicate
             document.getElementById("inputT3").value = selectedCell.t_indicate
             document.getElementById("inputGK3").value = selectedCell.id_gk
@@ -321,71 +274,55 @@ export default function Home() {
           }
 
           let cellData
-          // get full data about cell if it isn't requested
           if (selectedCell.g_indicate === undefined && selectedCell.id_value !== 1) {
 
-            const cellResponseData = await getDataFromAPI(`${process.env.REACT_APP_API_LINK}/${intl.locale}/quantities/${selectedCell.id_value}`)
+            const cellResponseData = await getDataFromAPI(`${API_BASE()}/quantities/${selectedCell.id_value}`)
             if (!isResponseSuccessful(cellResponseData)) {
               showMessage(cellResponseData.data.error,"error")
               return
             }
             cellData = cellResponseData.data.data
-   
+
 
           } else {cellData = selectedCell}
 
 
-          // set cell editor for this cell
-          convertMarkdownToEditorState(setCellNameEditor, cellData.value_name) 
-          convertMarkdownToEditorState(setCellSymbolEditor, cellData.symbol) 
-          convertMarkdownToEditorState(setCellUnitEditor, cellData.unit) 
+          convertMarkdownToEditorState(setCellNameEditor, cellData.value_name)
+          convertMarkdownToEditorState(setCellSymbolEditor, cellData.symbol)
+          convertMarkdownToEditorState(setCellUnitEditor, cellData.unit)
           document.getElementById("inputL3").value = cellData.l_indicate
           document.getElementById("inputT3").value = cellData.t_indicate
           document.getElementById("inputGK3").value = cellData.id_gk
         }  else {
-          convertMarkdownToEditorState(setCellNameEditor, "") 
-          convertMarkdownToEditorState(setCellSymbolEditor, "") 
-          convertMarkdownToEditorState(setCellUnitEditor, "") 
+          convertMarkdownToEditorState(setCellNameEditor, "")
+          convertMarkdownToEditorState(setCellSymbolEditor, "")
+          convertMarkdownToEditorState(setCellUnitEditor, "")
           document.getElementById("inputL3").value = null
           document.getElementById("inputT3").value = null
           document.getElementById("inputGK3").value = null
         }
-      } 
+      }
       setSelectedCell()
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCell]);
 
-    const { ref, getImage } = useDownloadableScreenshot(intl);
-
-
-    // DELETE LATER <------------------------
-    
-    // const testShow = (result,_,info) => {
-
-    //   console.log("input:",info)
-    //   console.log("result:",result)
-    // }
-
+    const { ref, getImage } = useDownloadableScreenshot();
 
 
     return (
-      <IntlProvider
-      locale={currentLocale}
-      defaultLocale="ru"
-      messages={translatedMessages}
-      >
+      <>
         <UserProfile.Provider value={userInfoState}>
           <TableContext.Provider value={tableState}>
 
-                <TableUI modalsVisibility={modalsVisibility} selectedCellState={selectedCellState} revStates={revStates} gkState={GKLayersState} selectedLawState={selectedLawState} hoveredCellState={hoveredCellState} refTable={ref} lawsGroupsState={lawsGroupsState} lawsState={lawsState} currentLocaleState={currentLocaleState} lawEditorsStates={lawEditorsStates} showModeState={showModeState}/>
+                <TableUI modalsVisibility={modalsVisibility} selectedCellState={selectedCellState} revStates={revStates} gkState={GKLayersState} selectedLawState={selectedLawState} hoveredCellState={hoveredCellState} refTable={ref} lawsGroupsState={lawsGroupsState} lawsState={lawsState} lawEditorsStates={lawEditorsStates} showModeState={showModeState}/>
                 <GKLayersImage modalVisibility={GKLayersImageModalVisibility} />
                 <Footbar GKLayersImageModalVisibility={GKLayersImageModalVisibility} hoveredCell={hoveredCell} selectedLawState={selectedLawState} getImage={getImage} tableViewState={tableViewState} setTableViews={setTableViews} modalsVisibility={modalsVisibility} showModeState={showModeState} selectedCellState={selectedCellState}/>
 
-                <div id="modal-mask" className='hidden'></div>                  
-                <RegistrationModal modalVisibility={modalsVisibility.regModalVisibility} setUserToken={setUserToken} currentLocaleState={currentLocaleState}/>               
+                <div id="modal-mask" className='hidden'></div>
+                <RegistrationModal modalVisibility={modalsVisibility.regModalVisibility} setUserToken={setUserToken}/>
                 <EditCellModal modalVisibility={modalsVisibility.editCellModalVisibility} selectedCell={selectedCell} selectedCellState={selectedCellState} cellEditorsStates={cellEditorsStates} gkColors={GKLayers}/>
-                <EditProfileModal modalsVisibility={modalsVisibility} userInfoState={userInfoState} currentLocaleState={currentLocaleState}/>
+                <EditProfileModal modalsVisibility={modalsVisibility} userInfoState={userInfoState}/>
                 <EditLawsModal modalsVisibility={modalsVisibility} lawsState={lawsState} selectedLawState={selectedLawState} lawsGroupsState={lawsGroupsState} lawEditorsStates={lawEditorsStates}/>
                 <TableViewsModal modalsVisibility={modalsVisibility} tableViews={tableViews} setTableViews={setTableViews} tableViewState={tableViewState} revStates={revStates} selectedLawState={selectedLawState}/>
                 <LawsGroupsModal modalsVisibility={modalsVisibility} lawsGroupsState={lawsGroupsState} lawsState={lawsState}/>
@@ -394,7 +331,7 @@ export default function Home() {
                 <ToastContainer />
           </TableContext.Provider>
         </UserProfile.Provider>
-      </IntlProvider>
+      </>
     );
 }
 
@@ -415,4 +352,3 @@ export function showPassword(inputElementRef,eyeElementRef) {
     eyeElementRef.current.classList.add( "fa-eye" );
   }
 }
-

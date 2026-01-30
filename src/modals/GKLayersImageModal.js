@@ -1,17 +1,13 @@
 import React from 'react';
-import { useIntl } from 'react-intl';
-import { Modal } from './Modal';
 
 export function GKLayersImage({ modalVisibility }) {
-
-  const intl = useIntl();
 
   console.log(modalVisibility.isVisible)
   if (modalVisibility.isVisible) {
     return (
       // <Modal
       //   modalVisibility={modalVisibility}
-      //   title={intl.formatMessage({ id: `Соотношение уровней GK`, defaultMessage: `Соотношение уровней GK` })}
+      //   title="Соотношение уровней GK"
       //   sizeX={600}
       // >
       //   <div className="modal-content2">

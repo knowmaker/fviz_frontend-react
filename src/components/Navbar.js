@@ -2,11 +2,10 @@ import React from 'react';
 import { TableContext, UserProfile } from '../misc/contexts.js';
 import { useContext } from 'react';
 import { toast } from 'react-toastify';
-import {FormattedMessage,useIntl} from 'react-intl'
 
 
-export default function Navbar({revStates, modalsVisibility,currentLocaleState}) {
-  
+export default function Navbar({revStates, modalsVisibility}) {
+
     const tableState = useContext(TableContext)
 
     const undoStack = revStates.undoStack
@@ -15,9 +14,7 @@ export default function Navbar({revStates, modalsVisibility,currentLocaleState})
     const setRedoStack = revStates.setRedoStack
     const setData = tableState.setTableData
     const data = tableState.tableData
-    const currentData = data;  
-    
-    const intl = useIntl()
+    const currentData = data;
 
     const undo = () => {
         if (undoStack.length > 0) {
@@ -51,7 +48,7 @@ export default function Navbar({revStates, modalsVisibility,currentLocaleState})
         modalsVisibility.regModalVisibility.setVisibility(true)
     }
 
-    const userInfoState = useContext(UserProfile)    
+    const userInfoState = useContext(UserProfile)
 
     let isAuthorized = false;
     if (userInfoState.userProfile) {
@@ -63,7 +60,7 @@ export default function Navbar({revStates, modalsVisibility,currentLocaleState})
         userInfoState.setUserProfile(null)
         userInfoState.setUserToken(null)
 
-        toast.success(intl.formatMessage({id:`Сеанс завершен`,defaultMessage: `Сеанс завершен`}), {
+        toast.success("Сеанс завершен", {
             position: "top-center",
             autoClose: 5000,
             hideProgressBar: true,
@@ -102,35 +99,24 @@ export default function Navbar({revStates, modalsVisibility,currentLocaleState})
         modalsVisibility.LawsMenuVisibility.setVisibility(true)
     }
 
-    const changeLocale = () => {
-        setUndoStack([])
-        setRedoStack([])
-        if (currentLocaleState.currentLocale === "en") {
-            currentLocaleState.setCurrentLocale("ru")
-        } else {
-            currentLocaleState.setCurrentLocale("en")
-        }
-        closeAllModals(modalsVisibility)
-    }
-
     let loginButtons;
 
     if (userInfoState.userProfile) {
         loginButtons = (
             <>
-                <span onClick={() => openProfileForm()} style={{cursor: "pointer"}}>{userInfoState.userProfile.first_name} (<FormattedMessage id='Мой профиль' defaultMessage="Мой профиль"/>)</span>
+                <span onClick={() => openProfileForm()} style={{cursor: "pointer"}}>{userInfoState.userProfile.first_name} (Мой профиль)</span>
                 <span style={{margin:10}}>/</span>
-                <span onClick={() => signOut()} style={{cursor: "pointer"}}><FormattedMessage id='Выход' defaultMessage="Выход"/></span>
+                <span onClick={() => signOut()} style={{cursor: "pointer"}}>Выход</span>
             </>
         )
-    }   
+    }
     else
     {
         loginButtons = (
             <>
-                <span onClick={() => openLoginForm()} style={{cursor: "pointer"}}><FormattedMessage id='Вход' defaultMessage="Вход"/></span>
+                <span onClick={() => openLoginForm()} style={{cursor: "pointer"}}>Вход</span>
                 <span style={{margin:10}}>/</span>
-                <span onClick={() => openRegistrationForm()} style={{cursor: "pointer"}}><FormattedMessage id='Регистрация' defaultMessage="Регистрация"/></span>
+                <span onClick={() => openRegistrationForm()} style={{cursor: "pointer"}}>Регистрация</span>
             </>
         )
     }
@@ -139,7 +125,7 @@ export default function Navbar({revStates, modalsVisibility,currentLocaleState})
         <nav className="navbar navbar-expand-lg fixed-top bg-body-tertiary">
 
             <div className="container-fluid">
-                <a className="navbar-brand" href='https://fviz.ru' data-bs-toggle="tooltip" data-bs-placement="bottom" title="Made by: Voronin © Web FViZ, 2023"><FormattedMessage id='ФВиЗ' defaultMessage="ФВиЗ"/></a>
+                <a className="navbar-brand" href='https://fviz.ru' data-bs-toggle="tooltip" data-bs-placement="bottom" title="Made by: Voronin © Web FViZ, 2023">ФВиЗ</a>
                 <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span className="navbar-toggler-icon"></span>
                 </button>
@@ -147,20 +133,17 @@ export default function Navbar({revStates, modalsVisibility,currentLocaleState})
                     <div className="navbar-nav">
                         {isAuthorized ?
                         (<>
-                        <div className={`nav-link ${undoStack.length === 0 ? "" : "active"}`} aria-current="page" onClick={undo}>↺<FormattedMessage id='Отмена' defaultMessage="Отмена"/></div>
-                        <div className={`nav-link ${redoStack.length === 0 ? "" : "active"}`} aria-current="page" onClick={redo}>↻<FormattedMessage id='Возврат' defaultMessage="Возврат"/></div>
-                        <div className="nav-link active" aria-current="page" onClick={openTableViewsForm}><FormattedMessage id='Представления' defaultMessage="Представления"/></div>
-                        <div className="nav-link active" aria-current="page" onClick={openLawsMenu}><FormattedMessage id='Законы' defaultMessage="Законы"/></div>
-                        <div className="nav-link active" aria-current="page" onClick={openLawsGroupsForm}><FormattedMessage id='Группы законов' defaultMessage="Группы законов"/></div>
-                        <div className="nav-link active" aria-current="page" onClick={openGKColorsEditForm}><FormattedMessage id='Цвета ячеек' defaultMessage="Цвета ячеек"/></div>
+                        <div className={`nav-link ${undoStack.length === 0 ? "" : "active"}`} aria-current="page" onClick={undo}>↺Отмена</div>
+                        <div className={`nav-link ${redoStack.length === 0 ? "" : "active"}`} aria-current="page" onClick={redo}>↻Возврат</div>
+                        <div className="nav-link active" aria-current="page" onClick={openTableViewsForm}>Представления</div>
+                        <div className="nav-link active" aria-current="page" onClick={openLawsMenu}>Законы</div>
+                        <div className="nav-link active" aria-current="page" onClick={openLawsGroupsForm}>Группы законов</div>
+                        <div className="nav-link active" aria-current="page" onClick={openGKColorsEditForm}>Цвета ячеек</div>
                         </>) : (null)}
                     </div>
                 </div>
                 <div className="navbar-text">
                     {loginButtons}
-                <span style={{margin:10}}> </span>
-
-                <div className="btn-sm btn-primary btn footbar-button" aria-current="page" onClick={changeLocale}>{currentLocaleState.currentLocale}</div>
                 </div>
             </div>
         </nav>
@@ -174,4 +157,3 @@ export function closeAllModals(modalsVisibility) {
     }
 
 }
-
