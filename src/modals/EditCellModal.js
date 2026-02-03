@@ -1,13 +1,12 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { getDataFromAPI, postDataToAPI, patchDataToAPI, deleteDataFromAPI } from '../misc/api.js';
-import { UserProfile, TableContext } from '../misc/contexts.js';
+import { UserProfile, TableContext, SystemTypeContext } from '../misc/contexts.js';
 import { Cell } from '../components/Table.js';
 import { isResponseSuccessful } from '../misc/api.js';
 import { convertMarkdownFromEditorState } from '../pages/Home.js';
 import { showMessage } from '../misc/message.js';
-import { convertToMLTI, convertNumberToUnicodePower } from '../misc/converters.js';
+import { convertNumberToUnicodePower } from '../misc/converters.js';
 import { convertMarkdownToEditorState } from '../misc/converters';
-import { SELECTED_SYSTEM_TYPE_ID } from '../misc/constants';
 import { Modal } from './Modal.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
 import { Button } from '../components/ButtonWithLoad.js';
@@ -15,11 +14,12 @@ import { Button } from '../components/ButtonWithLoad.js';
 const API_BASE = () => process.env.REACT_APP_API_LINK;
 
 export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates, gkColors, selectedCellState }) {
-
   const tableState = useContext(TableContext);
   const userInfoState = useContext(UserProfile);
+  const systemTypeState = useContext(SystemTypeContext);
+
   const headers = {
-    Authorization: `Bearer ${userInfoState.userToken}`
+    Authorization: `Bearer ${userInfoState.userToken}`,
   };
 
   let isAdmin = false;
@@ -30,21 +30,17 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
   const [currentModalLocaleFields, setCurrentModalLocaleFields] = useState(null);
 
   useEffect(() => {
-
     if (selectedCellState.selectedCell) {
-      setCurrentModalLocaleFields({
-        ...currentModalLocaleFields,
+      setCurrentModalLocaleFields((previousState) => ({
+        ...previousState,
         gk_id: selectedCellState.selectedCell.gk_id,
         l_indicate: selectedCellState.selectedCell.l_indicate,
         t_indicate: selectedCellState.selectedCell.t_indicate,
         symbol: selectedCellState.selectedCell.symbol,
-        ru: {
-          name: selectedCellState.selectedCell.name,
-          unit: selectedCellState.selectedCell.unit,
-        }
-      })
+        name: selectedCellState.selectedCell.name,
+        unit: selectedCellState.selectedCell.unit,
+      }));
     }
-
   }, [selectedCellState.selectedCell]);
 
   useEffect(() => {
@@ -74,10 +70,8 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
       l_indicate: parseInt(document.getElementById("inputL3").value),
       t_indicate: parseInt(document.getElementById("inputT3").value),
       symbol: convertMarkdownFromEditorState(cellEditorsStates.cellSymbolEditorState.value).split("/n").join(""),
-      ru: {
-        name: convertMarkdownFromEditorState(cellEditorsStates.cellNameEditorState.value).split("/n").join(""),
-        unit: convertMarkdownFromEditorState(cellEditorsStates.cellUnitEditorState.value).split("/n").join(""),
-      }
+      name: convertMarkdownFromEditorState(cellEditorsStates.cellNameEditorState.value).split("/n").join(""),
+      unit: convertMarkdownFromEditorState(cellEditorsStates.cellUnitEditorState.value).split("/n").join(""),
     }
 
     setCurrentModalLocaleFields(currentModalLocaleFieldsUpdated)
@@ -110,9 +104,9 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
     const I_indicate = 0 - K_indicate * -1;
 
     const newCell = {
-      name: currentModalFields.ru.name,
+      name: currentModalFields.name,
       symbol: currentModalFields.symbol,
-      unit: currentModalFields.ru.unit,
+      unit: currentModalFields.unit,
       m_indicate: String(M_indicate),
       l_indicate: String(L_indicate),
       t_indicate: String(T_indicate),
@@ -130,7 +124,7 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
 
     tableState.setTableData(tableState.tableData.filter(cell => cell.id !== cellData.id).concat(cellData));
 
-    const cellAlternativesResponseData = await getDataFromAPI(`${API_BASE()}/quantities/by-system-type/${SELECTED_SYSTEM_TYPE_ID}/by-lt/${selectedCell.lt_id}`, headers);
+    const cellAlternativesResponseData = await getDataFromAPI(`${API_BASE()}/quantities/by-system-type/${systemTypeState.currentSystemTypeId}/by-lt/${selectedCell.lt_id}`, headers);
     if (isResponseSuccessful(cellAlternativesResponseData)) {
       const cellAlternatives = cellAlternativesResponseData.data;
       if (cellAlternatives.length > 0 && cellData.lt_id !== selectedCell.lt_id) {
@@ -155,16 +149,16 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
     const I_indicate = 0 - K_indicate * -1;
 
     const newCell = {
-      name: currentModalFields.ru.name,
+      name: currentModalFields.name,
       symbol: currentModalFields.symbol,
-      unit: currentModalFields.ru.unit,
+      unit: currentModalFields.unit,
       m_indicate: String(M_indicate),
       l_indicate: String(L_indicate),
       t_indicate: String(T_indicate),
       i_indicate: String(I_indicate),
       gk_id,
       lt_id: selectedCell.lt_id,
-      system_type_id: SELECTED_SYSTEM_TYPE_ID,
+      system_type_id: systemTypeState.currentSystemTypeId,
     };
 
     const createdCellResponseData = await postDataToAPI(`${API_BASE()}/quantities`, newCell, headers);
@@ -194,7 +188,7 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
 
     tableState.setTableData(tableState.tableData.filter(cell => cell.id !== selectedCell.id));
 
-    const cellAlternativesResponseData = await getDataFromAPI(`${API_BASE()}/quantities/by-system-type/${SELECTED_SYSTEM_TYPE_ID}/by-lt/${selectedCell.lt_id}`, headers);
+    const cellAlternativesResponseData = await getDataFromAPI(`${API_BASE()}/quantities/by-system-type/${systemTypeState.currentSystemTypeId}/by-lt/${selectedCell.lt_id}`, headers);
     if (isResponseSuccessful(cellAlternativesResponseData)) {
       const cellAlternatives = cellAlternativesResponseData.data;
       if (cellAlternatives.length > 0) {
@@ -250,7 +244,7 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
           t_indicate: String(T_indicate),
           i_indicate: String(I_indicate),
         },
-        cellColor: cellColor,
+        cellColor,
       });
     }
   };
@@ -263,15 +257,16 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
       sizeX={650}
     >
       <div className="modal-content2">
-        {isAdmin ?
-          (<>
+        {isAdmin ? (
+          <>
             <div className="row">
               <details>
                 <summary>Превью</summary>
                 <Cell cellFullData={previewCell} />
               </details>
             </div>
-          </>) : (null)}
+          </>
+        ) : null}
 
         <div className="row">
           <div className="col-6">
@@ -309,13 +304,15 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
           </div>
         </div>
       </div>
-      {isAdmin ?
-        (<>
+      {isAdmin ? (
+        <>
           <div className="modal-footer2">
             <Button type="button" className="btn btn-danger" onClick={(e) => deleteCell(e)}>Удалить</Button>
             <Button type="button" className="btn btn-success" onClick={(e) => saveButtonClick(e)}>Сохранить</Button>
           </div>
-        </>) : (null)}
+        </>
+      ) : null}
     </Modal>
   );
 }
+

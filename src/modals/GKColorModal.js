@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import setStateFromGetAPI, { patchDataToAPI } from '../misc/api.js';
-import { UserProfile } from '../misc/contexts.js';
-import { SELECTED_SYSTEM_TYPE_ID } from '../misc/constants';
+import { UserProfile, SystemTypeContext } from '../misc/contexts.js';
 import { EditorState } from 'draft-js';
 import { isResponseSuccessful } from '../misc/api.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
@@ -14,15 +13,16 @@ import { Button } from '../components/ButtonWithLoad.js';
 const API_BASE = () => process.env.REACT_APP_API_LINK;
 
 export function GKLayersModal({ modalsVisibility, GKLayersState }) {
-
   const userInfoState = useContext(UserProfile);
+  const systemTypeState = useContext(SystemTypeContext);
+
   const headers = {
-    Authorization: `Bearer ${userInfoState.userToken}`
+    Authorization: `Bearer ${userInfoState.userToken}`,
   };
   const GKLayers = GKLayersState.gkColors;
   const setGKLayers = GKLayersState.setGkColors;
 
-  const [selectedGKLayer, setSelectedGKLayer] = useState({ ru: { name: null }, id: null, color: null });
+  const [selectedGKLayer, setSelectedGKLayer] = useState({ name: null, id: null, color: null });
   const [GKLayerEditorState, setGKLayerEditorState] = useState(EditorState.createEmpty());
 
   let isAdmin = false;
@@ -36,41 +36,33 @@ export function GKLayersModal({ modalsVisibility, GKLayersState }) {
       document.getElementById("InputGKLayerColor3").value = "#000000";
     }
     if (modalsVisibility.GKColorsEditModalVisibility.isVisible === false) {
-      setSelectedGKLayer({ ru: { name: null }, id: null, color: null });
+      setSelectedGKLayer({ name: null, id: null, color: null });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modalsVisibility.GKColorsEditModalVisibility.isVisible]);
 
   const selectGKLayer = async (layer) => {
-    const selectedLayer = {
-      ...layer,
-      ru: { name: layer.name },
-    };
-    convertMarkdownToEditorState(setGKLayerEditorState, selectedLayer.ru.name);
-    document.getElementById("InputGKLayerColor3").value = selectedLayer.color;
-    setSelectedGKLayer(selectedLayer);
+    convertMarkdownToEditorState(setGKLayerEditorState, layer.name);
+    document.getElementById('InputGKLayerColor3').value = layer.color;
+    setSelectedGKLayer(layer);
   };
 
   const updateButtonClick = async () => {
     const selectedLayerUpdated = {
       ...selectedGKLayer,
-      ru: {
-        name: convertMarkdownFromEditorState(GKLayerEditorState).split("/n").join("")
-      },
+      name: convertMarkdownFromEditorState(GKLayerEditorState).split("/n").join(""),
     };
     if (!await updateLayer(selectedLayerUpdated)) {
       return;
     }
-    setStateFromGetAPI(setGKLayers, `${API_BASE()}/gk/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+    setStateFromGetAPI(setGKLayers, `${API_BASE()}/gk/by-system-type/${systemTypeState.currentSystemTypeId}`, undefined, headers);
     showMessage("Системный уровень обновлен");
   };
 
   const updateLayer = async (layer) => {
-    const GKLayerColor = layer.color;
-    const GKLayerName = layer.ru.name;
     const payload = {
-      name: GKLayerName,
-      color: GKLayerColor,
+      name: layer.name,
+      color: layer.color,
     };
     const changedGKLayerResponseData = await patchDataToAPI(`${API_BASE()}/gk/${selectedGKLayer.id}`, payload, headers);
     if (!isResponseSuccessful(changedGKLayerResponseData)) {
@@ -93,17 +85,19 @@ export function GKLayersModal({ modalsVisibility, GKLayersState }) {
       const isCurrent = selectedGKLayer.id === GKLayer.id;
       return (
         <tr key={GKLayer.id}>
-          {isAdmin ?
-            (<>
-              <th scope="row" className='small-cell'>{isCurrent ? `+` : ""}</th>
-            </>) : (null)}
+          {isAdmin ? (
+            <>
+              <th scope="row" className='small-cell'>{isCurrent ? '+' : ''}</th>
+            </>
+          ) : null}
           <td dangerouslySetInnerHTML={{ __html: GKLayer.name }}></td>
           <td>G<sup>{GKLayer.g_indicate}</sup>K<sup>{GKLayer.k_indicate}</sup></td>
           <td><input type="color" className="form-control form-control-color disabled" value={GKLayer.color} readOnly onClick={(e) => { e.preventDefault(); }} /></td>
-          {isAdmin ?
-            (<>
+          {isAdmin ? (
+            <>
               <td className='small-cell'><button type="button" className="btn btn-primary btn-sm" onClick={() => selectGKLayer(GKLayer)}>📝</button></td>
-            </>) : (null)}
+            </>
+          ) : null}
         </tr>
       );
     });
@@ -119,8 +113,8 @@ export function GKLayersModal({ modalsVisibility, GKLayersState }) {
       sizeX={600}
     >
       <div className="modal-content2">
-        {isAdmin ?
-          (<>
+        {isAdmin ? (
+          <>
             <div className="row mb-2">
               <div className="col-2">
                 Название:
@@ -142,22 +136,25 @@ export function GKLayersModal({ modalsVisibility, GKLayersState }) {
                 <Button type="button" className="btn btn-info" onClick={(e) => updateButtonClick(e)}>Обновить</Button>
               </div>
             </div>
-          </>) : (null)}
+          </>
+        ) : null}
 
         <table className="table">
           <thead>
             <tr>
-              {isAdmin ?
-                (<>
+              {isAdmin ? (
+                <>
                   <th scope="col">#</th>
-                </>) : (null)}
+                </>
+              ) : null}
               <th scope="col">Имя</th>
               <th scope="col">GK</th>
               <th scope="col">Цвет</th>
-              {isAdmin ?
-                (<>
+              {isAdmin ? (
+                <>
                   <th scope="col">Выбрать</th>
-                </>) : (null)}
+                </>
+              ) : null}
             </tr>
           </thead>
           <tbody>
@@ -168,3 +165,4 @@ export function GKLayersModal({ modalsVisibility, GKLayersState }) {
     </Modal>
   );
 }
+

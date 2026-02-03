@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext, forwardRef, useRef } from 'react';
 import Navbar from './Navbar';
-import { TableContext, UserProfile } from '../misc/contexts.js';
+import { TableContext, UserProfile, SystemTypeContext } from '../misc/contexts.js';
 
 import setStateFromGetAPI, {getAllCellDataFromAPI} from '../misc/api.js';
 import LawsCanvas from './LawsCanvas';
@@ -8,7 +8,6 @@ import { showMessage } from '../misc/message';
 import { isResponseSuccessful } from '../misc/api';
 import { convertToMLTI, parseFraction } from '../misc/converters';
 import { convertMarkdownToEditorState } from '../misc/converters';
-import { SELECTED_SYSTEM_TYPE_ID } from '../misc/constants';
 
 const API_BASE = () => process.env.REACT_APP_API_LINK;
 
@@ -57,16 +56,17 @@ function CellOptions({selectedCellState ,gkColors, revStates,modalsVisibility}) 
 
   const selectedCell = selectedCellState.selectedCell
   const setSelectedCell = selectedCellState.setSelectedCell
+  const systemTypeState = useContext(SystemTypeContext);
 
   const [cellAlternatives, setCellAlternatives] = useState(null);
 
   useEffect(() => {
     if (selectedCell && !modalsVisibility.editCellModalVisibility.isVisible) {
-      setStateFromGetAPI(setCellAlternatives, `${API_BASE()}/quantities/by-system-type/${SELECTED_SYSTEM_TYPE_ID}/by-lt/${selectedCell.lt_id}`);
+      setStateFromGetAPI(setCellAlternatives, `${API_BASE()}/quantities/by-system-type/${systemTypeState.currentSystemTypeId}/by-lt/${selectedCell.lt_id}`);
     } else { setCellAlternatives(null); }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCell]);
+  }, [selectedCell, systemTypeState.currentSystemTypeId]);
 
   if (cellAlternatives !== null && selectedCell) {
 

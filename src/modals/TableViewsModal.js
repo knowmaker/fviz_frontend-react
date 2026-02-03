@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import setStateFromGetAPI, { getDataFromAPI, postDataToAPI, patchDataToAPI, deleteDataFromAPI } from '../misc/api.js';
-import { UserProfile, TableContext } from '../misc/contexts.js';
-import { SELECTED_SYSTEM_TYPE_ID } from '../misc/constants';
+import { UserProfile, TableContext, SystemTypeContext } from '../misc/contexts.js';
 import { EditorState } from 'draft-js';
 import { isResponseSuccessful } from '../misc/api.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
@@ -14,11 +13,12 @@ import { Button } from '../components/ButtonWithLoad.js';
 const API_BASE = () => process.env.REACT_APP_API_LINK;
 
 export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, tableViewState, revStates, selectedLawState }) {
-
   const userInfoState = useContext(UserProfile);
   const tableState = useContext(TableContext);
+  const systemTypeState = useContext(SystemTypeContext);
+
   const headers = {
-    Authorization: `Bearer ${userInfoState.userToken}`
+    Authorization: `Bearer ${userInfoState.userToken}`,
   };
 
   const [tableViewEditorState, setTableViewEditorState] = useState(EditorState.createEmpty());
@@ -70,10 +70,9 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
       return;
     }
 
-    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents/by-system-type/${systemTypeState.currentSystemTypeId}`, undefined, headers);
 
     showMessage("Представление обновлено");
-
   };
 
   const deleteTableView = async (tableView) => {
@@ -88,10 +87,9 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
       return;
     }
 
-    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents/by-system-type/${systemTypeState.currentSystemTypeId}`, undefined, headers);
 
     showMessage("Представление удалено");
-
   };
 
   const createTableView = async () => {
@@ -103,7 +101,7 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
     const newTableView = {
       title: tableViewTitle,
       quantity_ids: cellIds,
-      system_type_id: `${SELECTED_SYSTEM_TYPE_ID}`,
+      system_type_id: `${systemTypeState.currentSystemTypeId}`,
       is_active: true,
     };
     const newTableViewResponseData = await postDataToAPI(`${API_BASE()}/represents`, newTableView, headers);
@@ -112,12 +110,10 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
       return;
     }
 
-    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents/by-system-type/${systemTypeState.currentSystemTypeId}`, undefined, headers);
 
     showMessage("Представление создано");
-
   };
-
 
   let tableViewsMarkup = null;
   if (tableViews) {
@@ -127,7 +123,7 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
 
       return (
         <tr key={tableView.id}>
-          <th scope="row" className='small-cell'>{isCurrent ? `+` : ''}</th>
+          <th scope="row" className='small-cell'>{isCurrent ? '+' : ''}</th>
           <td dangerouslySetInnerHTML={{ __html: tableView.title }}></td>
           <td className='small-cell'><button type="button" className="btn btn-primary btn-sm" onClick={() => selectTableView(tableView)}>📝</button></td>
           <td className='small-cell'><button type="button" className="btn btn-danger btn-sm" onClick={() => deleteTableView(tableView)}>🗑</button></td>
@@ -135,8 +131,6 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
       );
     });
   }
-
-
 
   return (
     <Modal
@@ -146,7 +140,6 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
       sizeX={600}
     >
       <div className="modal-content2">
-
         <div className="row">
           <div className="col-2">
             Название:
@@ -175,7 +168,7 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
           </tbody>
         </table>
       </div>
-
     </Modal>
   );
 }
+

@@ -38,14 +38,14 @@ html {
   left: 1px;
   height: 118px;
   width: 178px;
-  background-color: #8a91a0; 
+  background-color: #8a91a0;
   clip-path: inherit;
-  
+
 }
 
 .cell-invisible {
   background-color: #fff;
-  
+
 }
 
 .fancy-empty-cell {
@@ -65,7 +65,7 @@ html {
   overflow-y: scroll;
   overflow-x: scroll;
   padding-left: 230px;
-  padding-right: 5px;  
+  padding-right: 5px;
   position: relative;
 }
 
@@ -130,6 +130,32 @@ sup, sub {
   z-index: 1;
   max-height: calc(100% - 150px);
   overflow: auto;
+}
+
+.system-types-panel {
+  position: fixed;
+  top: 68px;
+  left: 2px;
+  width: 120px;
+  max-height: calc(100% - 140px);
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+  overflow: auto;
+}
+
+.system-types-title {
+  margin-bottom: 8px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.system-type-button {
+  width: 100%;
+  margin-bottom: 6px;
+  text-align: left;
 }
 
 .data-window-left {
@@ -210,6 +236,10 @@ sup, sub {
 }
 
 @media (max-width:992px) {
+  .system-types-panel {
+    width: 160px;
+    max-height: calc(100% - 180px);
+  }
   .footbar-button {
     margin: 5px;
   }

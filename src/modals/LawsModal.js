@@ -1,7 +1,6 @@
 import React, { useEffect, useContext } from 'react';
 import setStateFromGetAPI, { postDataToAPI, patchDataToAPI, deleteDataFromAPI } from '../misc/api.js';
-import { UserProfile } from '../misc/contexts.js';
-import { SELECTED_SYSTEM_TYPE_ID } from '../misc/constants';
+import { UserProfile, SystemTypeContext } from '../misc/contexts.js';
 import { isResponseSuccessful } from '../misc/api.js';
 import { checkLaw } from '../components/Table.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
@@ -13,10 +12,11 @@ import { Button } from '../components/ButtonWithLoad.js';
 const API_BASE = () => process.env.REACT_APP_API_LINK;
 
 export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, lawsGroupsState, lawEditorsStates }) {
-
   const userInfoState = useContext(UserProfile);
+  const systemTypeState = useContext(SystemTypeContext);
+
   const headers = {
-    Authorization: `Bearer ${userInfoState.userToken}`
+    Authorization: `Bearer ${userInfoState.userToken}`,
   };
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
       third_quantity_id: selectedLawCellId[2],
       fourth_quantity_id: selectedLawCellId[3],
       law_group_id: document.getElementById("inputLawGroup3").value !== "-1" ? document.getElementById("inputLawGroup3").value : null,
-      system_type_id: SELECTED_SYSTEM_TYPE_ID,
+      system_type_id: systemTypeState.currentSystemTypeId,
     };
 
     const newLawResponseData = await postDataToAPI(`${API_BASE()}/laws`, newLaw, headers);
@@ -66,7 +66,7 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
       return;
     }
 
-    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws/by-system-type/${systemTypeState.currentSystemTypeId}`, undefined, headers);
 
     selectedLawState.setSelectedLaw({
       ...newLawResponseData.data,
@@ -74,11 +74,9 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
     });
 
     showMessage("Закон создан");
-
   };
 
   const updateLaw = async () => {
-
     if (selectedLawState.selectedLaw.cells.length !== 4) {
       showMessage("Для закона нужно выбрать 4 ячейки");
       return;
@@ -101,7 +99,7 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
       return;
     }
 
-    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws/by-system-type/${systemTypeState.currentSystemTypeId}`, undefined, headers);
 
     showMessage("Закон обновлён");
 
@@ -121,12 +119,11 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
       return;
     }
 
-    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws/by-system-type/${systemTypeState.currentSystemTypeId}`, undefined, headers);
 
     showMessage("Закон удалён");
 
-    modalsVisibility.lawsModalVisibility.setVisibility(false)
-
+    modalsVisibility.lawsModalVisibility.setVisibility(false);
   };
 
   const chooseOption = <option key={-1} value={-1}>Выберите опцию</option>;
@@ -138,7 +135,6 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
     return (
       <option key={lawGroup.id} value={lawGroup.id} dangerouslySetInnerHTML={{ __html: shownText }} />
     );
-
   });
 
   const allOptions = [chooseOption, ...lawsGroupList];
@@ -195,12 +191,13 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
 
       <div className="modal-footer2">
         <Button type="button" className="btn btn-success me-1" onClick={(e) => saveButtonClick(e)}>Сохранить</Button>
-        {selectedLaw.id ?
-          (<>
+        {selectedLaw.id ? (
+          <>
             <Button type="button" className="btn btn-danger" onClick={(e) => deleteLaw(e)}>Удалить</Button>
-          </>) : (null)}
+          </>
+        ) : null}
       </div>
-
     </Modal>
   );
 }
+

@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import setStateFromGetAPI, { postDataToAPI, patchDataToAPI, deleteDataFromAPI } from '../misc/api.js';
-import { UserProfile } from '../misc/contexts.js';
-import { SELECTED_SYSTEM_TYPE_ID } from '../misc/constants';
+import { UserProfile, SystemTypeContext } from '../misc/contexts.js';
 import { EditorState } from 'draft-js';
 import { isResponseSuccessful } from '../misc/api.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
@@ -14,10 +13,11 @@ import { Button } from '../components/ButtonWithLoad.js';
 const API_BASE = () => process.env.REACT_APP_API_LINK;
 
 export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }) {
-
   const userInfoState = useContext(UserProfile);
+  const systemTypeState = useContext(SystemTypeContext);
+
   const headers = {
-    Authorization: `Bearer ${userInfoState.userToken}`
+    Authorization: `Bearer ${userInfoState.userToken}`,
   };
   const lawsGroups = lawsGroupsState.lawsGroups;
   const setLawsGroups = lawsGroupsState.setLawsGroups;
@@ -27,7 +27,7 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
     isAdmin = userInfoState.userProfile.is_admin;
   }
 
-  const [selectedLawGroup, setSelectedLawGroup] = useState({ ru: { name: null }, id: null, color: null });
+  const [selectedLawGroup, setSelectedLawGroup] = useState({ name: null, id: null, color: null });
   const [lawGroupEditorState, setLawGroupEditorState] = useState(EditorState.createEmpty());
 
   useEffect(() => {
@@ -36,32 +36,26 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
       document.getElementById("InputLawGroupColor3").value = "#000000";
     }
     if (modalsVisibility.lawsGroupsModalVisibility.isVisible === false) {
-      setSelectedLawGroup({ ru: { name: null }, id: null, color: null });
+      setSelectedLawGroup({ name: null, id: null, color: null });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modalsVisibility.lawsGroupsModalVisibility.isVisible]);
 
   const selectLawGroup = async (group) => {
-    const selectedGroup = {
-      ...group,
-      ru: { name: group.name },
-    };
-    convertMarkdownToEditorState(setLawGroupEditorState, selectedGroup.ru.name);
+    convertMarkdownToEditorState(setLawGroupEditorState, group.name);
     document.getElementById("InputLawGroupColor3").value = group.color;
-    setSelectedLawGroup(selectedGroup);
+    setSelectedLawGroup(group);
   };
 
   const updateButtonClick = async () => {
     const selectedLawGroupUpdated = {
       ...selectedLawGroup,
-      ru: {
-        name: convertMarkdownFromEditorState(lawGroupEditorState).split("/n").join("")
-      },
+      name: convertMarkdownFromEditorState(lawGroupEditorState).split("/n").join(""),
     };
     if (!await updateLawGroup(selectedLawGroupUpdated)) {
       return;
     }
-    setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_groups/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+    setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_groups/by-system-type/${systemTypeState.currentSystemTypeId}`, undefined, headers);
     showMessage("Группа была обновлена");
   };
 
@@ -69,9 +63,7 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
     let selectedLawGroupUpdated = {
       ...selectedLawGroup,
       color: document.getElementById("InputLawGroupColor3").value,
-      ru: {
-        name: convertMarkdownFromEditorState(lawGroupEditorState).split("/n").join("")
-      },
+      name: convertMarkdownFromEditorState(lawGroupEditorState).split("/n").join(""),
     };
     const createResult = await createLawGroup(selectedLawGroupUpdated);
     if (!createResult) {
@@ -79,23 +71,21 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
     }
     selectedLawGroupUpdated = {
       ...selectedLawGroupUpdated,
-      id: createResult.id
+      id: createResult.id,
     };
     if (!await updateLawGroup(selectedLawGroupUpdated)) {
       return;
     }
-    setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_groups/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+    setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_groups/by-system-type/${systemTypeState.currentSystemTypeId}`, undefined, headers);
     setLawGroupEditorState(EditorState.createEmpty());
     document.getElementById("InputLawGroupColor3").value = "#FF0000";
     showMessage("Группа была создана");
   };
 
   const updateLawGroup = async (lawGroup) => {
-    const lawGroupColor = lawGroup.color;
-    const lawGroupName = lawGroup.ru.name;
     const payload = {
-      name: lawGroupName,
-      color: lawGroupColor,
+      name: lawGroup.name,
+      color: lawGroup.color,
     };
     const changedGroupResponseData = await patchDataToAPI(`${API_BASE()}/law_groups/${lawGroup.id}`, payload, headers);
     if (!isResponseSuccessful(changedGroupResponseData)) {
@@ -114,18 +104,16 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
       showMessage(groupDeleteResponseData.data?.detail || groupDeleteResponseData.data?.error, "error");
       return;
     }
-    setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_groups/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
-    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+    setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_groups/by-system-type/${systemTypeState.currentSystemTypeId}`, undefined, headers);
+    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws/by-system-type/${systemTypeState.currentSystemTypeId}`, undefined, headers);
     showMessage("Группа была удалена");
   };
 
   const createLawGroup = async (lawGroup) => {
-    const lawGroupColor = lawGroup.color;
-    const lawGroupName = lawGroup.ru.name;
     const newLawGroup = {
-      name: lawGroupName,
-      color: lawGroupColor,
-      system_type_id: SELECTED_SYSTEM_TYPE_ID,
+      name: lawGroup.name,
+      color: lawGroup.color,
+      system_type_id: systemTypeState.currentSystemTypeId,
     };
     const newGroupResponseData = await postDataToAPI(`${API_BASE()}/law_groups`, newLawGroup, headers);
     if (!isResponseSuccessful(newGroupResponseData)) {
@@ -148,17 +136,19 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
       const isCurrent = selectedLawGroup.id === group.id;
       return (
         <tr key={group.id}>
-          {isAdmin ?
-            (<>
-              <th scope="row" className='small-cell'>{isCurrent ? `+` : ''}</th>
-            </>) : (null)}
+          {isAdmin ? (
+            <>
+              <th scope="row" className='small-cell'>{isCurrent ? '+' : ''}</th>
+            </>
+          ) : null}
           <td dangerouslySetInnerHTML={{ __html: group.name }}></td>
           <td><input type="color" className="form-control form-control-color disabled" value={group.color} readOnly onClick={(e) => { e.preventDefault(); }} /></td>
-          {isAdmin ?
-            (<>
+          {isAdmin ? (
+            <>
               <td className='small-cell'><button type="button" className="btn btn-primary btn-sm" onClick={() => selectLawGroup(group)}>📝</button></td>
               <td className='small-cell'><button type="button" className="btn btn-danger btn-sm" onClick={() => deleteLawGroup(group)}>🗑</button></td>
-            </>) : (null)}
+            </>
+          ) : null}
         </tr>
       );
     });
@@ -174,8 +164,8 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
       sizeX={600}
     >
       <div className="modal-content2">
-        {isAdmin ?
-          (<>
+        {isAdmin ? (
+          <>
             <div className="row mb-2">
               <div className="col-2">
                 Название:
@@ -200,22 +190,25 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
                 <Button type="button" className="btn btn-info" onClick={(e) => updateButtonClick(e)}>Обновить</Button>
               </div>
             </div>
-          </>) : (null)}
+          </>
+        ) : null}
 
         <table className="table">
           <thead>
             <tr>
-              {isAdmin ?
-                (<>
+              {isAdmin ? (
+                <>
                   <th scope="col">#</th>
-                </>) : (null)}
+                </>
+              ) : null}
               <th scope="col">Название</th>
               <th scope="col">Цвет</th>
-              {isAdmin ?
-                (<>
+              {isAdmin ? (
+                <>
                   <th scope="col">Выбрать</th>
                   <th scope="col">Удалить</th>
-                </>) : (null)}
+                </>
+              ) : null}
             </tr>
           </thead>
           <tbody>
@@ -226,3 +219,4 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
     </Modal>
   );
 }
+
