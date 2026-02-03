@@ -4,7 +4,7 @@ import htmlToDraft from "html-to-draftjs";
 
 export function convertMarkdownToEditorState(stateFunction, markdown) {
 
-  let markdownNotNull = markdown !== null ? markdown : ""
+  const markdownNotNull = typeof markdown === "string" ? markdown : "";
   const blocksFromHtml = htmlToDraft(markdownNotNull);
   const { contentBlocks, entityMap } = blocksFromHtml;
   const contentState = ContentState.createFromBlockArray(contentBlocks, entityMap);
