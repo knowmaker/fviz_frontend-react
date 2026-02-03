@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
-import setStateFromGetAPI, { postDataToAPI, putDataToAPI, deleteDataFromAPI, getDataFromAPI } from '../misc/api.js';
+import setStateFromGetAPI, { postDataToAPI, patchDataToAPI, deleteDataFromAPI } from '../misc/api.js';
 import { UserProfile } from '../misc/contexts.js';
+import { SELECTED_SYSTEM_TYPE_ID } from '../misc/constants';
 import { EditorState } from 'draft-js';
 import { isResponseSuccessful } from '../misc/api.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
@@ -23,10 +24,10 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
 
   let isAdmin = false;
   if (userInfoState.userProfile) {
-    isAdmin = userInfoState.userProfile.role;
+    isAdmin = userInfoState.userProfile.is_admin;
   }
 
-  const [selectedLawGroup, setSelectedLawGroup] = useState({ ru: { type_name: null }, id_type: null, color: null });
+  const [selectedLawGroup, setSelectedLawGroup] = useState({ ru: { name: null }, id: null, color: null });
   const [lawGroupEditorState, setLawGroupEditorState] = useState(EditorState.createEmpty());
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
       document.getElementById("InputLawGroupColor3").value = "#000000";
     }
     if (modalsVisibility.lawsGroupsModalVisibility.isVisible === false) {
-      setSelectedLawGroup({ ru: { type_name: null }, id_type: null, color: null });
+      setSelectedLawGroup({ ru: { name: null }, id: null, color: null });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modalsVisibility.lawsGroupsModalVisibility.isVisible]);
@@ -43,10 +44,9 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
   const selectLawGroup = async (group) => {
     const selectedGroup = {
       ...group,
-      type_name: null,
-      ru: { type_name: group.type_name },
+      ru: { name: group.name },
     };
-    convertMarkdownToEditorState(setLawGroupEditorState, selectedGroup.ru.type_name);
+    convertMarkdownToEditorState(setLawGroupEditorState, selectedGroup.ru.name);
     document.getElementById("InputLawGroupColor3").value = group.color;
     setSelectedLawGroup(selectedGroup);
   };
@@ -55,13 +55,13 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
     const selectedLawGroupUpdated = {
       ...selectedLawGroup,
       ru: {
-        type_name: convertMarkdownFromEditorState(lawGroupEditorState).split("/n").join("")
+        name: convertMarkdownFromEditorState(lawGroupEditorState).split("/n").join("")
       },
     };
     if (!await updateLawGroup(selectedLawGroupUpdated)) {
       return;
     }
-    setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_types`, undefined, headers);
+    setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_groups/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
     showMessage("Группа была обновлена");
   };
 
@@ -70,7 +70,7 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
       ...selectedLawGroup,
       color: document.getElementById("InputLawGroupColor3").value,
       ru: {
-        type_name: convertMarkdownFromEditorState(lawGroupEditorState).split("/n").join("")
+        name: convertMarkdownFromEditorState(lawGroupEditorState).split("/n").join("")
       },
     };
     const createResult = await createLawGroup(selectedLawGroupUpdated);
@@ -79,12 +79,12 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
     }
     selectedLawGroupUpdated = {
       ...selectedLawGroupUpdated,
-      id_type: createResult.id_type
+      id: createResult.id
     };
     if (!await updateLawGroup(selectedLawGroupUpdated)) {
       return;
     }
-    setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_types`, undefined, headers);
+    setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_groups/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
     setLawGroupEditorState(EditorState.createEmpty());
     document.getElementById("InputLawGroupColor3").value = "#FF0000";
     showMessage("Группа была создана");
@@ -92,16 +92,14 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
 
   const updateLawGroup = async (lawGroup) => {
     const lawGroupColor = lawGroup.color;
-    const lawGroupName = lawGroup.ru.type_name;
-    const newLawGroup = {
-      law_type: {
-        type_name: lawGroupName,
-        color: lawGroupColor,
-      }
+    const lawGroupName = lawGroup.ru.name;
+    const payload = {
+      name: lawGroupName,
+      color: lawGroupColor,
     };
-    const changedGroupResponseData = await putDataToAPI(`${API_BASE()}/law_types/${lawGroup.id_type}`, newLawGroup, headers);
+    const changedGroupResponseData = await patchDataToAPI(`${API_BASE()}/law_groups/${lawGroup.id}`, payload, headers);
     if (!isResponseSuccessful(changedGroupResponseData)) {
-      showMessage(changedGroupResponseData.data.error, "error");
+      showMessage(changedGroupResponseData.data?.detail || changedGroupResponseData.data?.error, "error");
       return false;
     }
     return true;
@@ -111,31 +109,30 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
     if (!window.confirm("Вы уверены что хотите это сделать? Это приведёт к последствиям для других пользователей.")) {
       return;
     }
-    const groupDeleteResponseData = await deleteDataFromAPI(`${API_BASE()}/law_types/${group.id_type}`, undefined, headers);
+    const groupDeleteResponseData = await deleteDataFromAPI(`${API_BASE()}/law_groups/${group.id}`, undefined, headers);
     if (!isResponseSuccessful(groupDeleteResponseData)) {
-      showMessage(groupDeleteResponseData.data.error, "error");
+      showMessage(groupDeleteResponseData.data?.detail || groupDeleteResponseData.data?.error, "error");
       return;
     }
-    setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_types`, undefined, headers);
-    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws`, undefined, headers);
+    setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_groups/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
     showMessage("Группа была удалена");
   };
 
   const createLawGroup = async (lawGroup) => {
     const lawGroupColor = lawGroup.color;
-    const lawGroupName = lawGroup.ru.type_name;
+    const lawGroupName = lawGroup.ru.name;
     const newLawGroup = {
-      law_type: {
-        type_name: lawGroupName,
-        color: lawGroupColor,
-      }
+      name: lawGroupName,
+      color: lawGroupColor,
+      system_type_id: SELECTED_SYSTEM_TYPE_ID,
     };
-    const newGroupResponseData = await postDataToAPI(`${API_BASE()}/law_types`, newLawGroup, headers);
+    const newGroupResponseData = await postDataToAPI(`${API_BASE()}/law_groups`, newLawGroup, headers);
     if (!isResponseSuccessful(newGroupResponseData)) {
-      showMessage(newGroupResponseData.data.error, "error");
+      showMessage(newGroupResponseData.data?.detail || newGroupResponseData.data?.error, "error");
       return false;
     }
-    return newGroupResponseData.data.data;
+    return newGroupResponseData.data;
   };
 
   const updateColor = async () => {
@@ -148,14 +145,14 @@ export function LawsGroupsModal({ modalsVisibility, lawsGroupsState, lawsState }
   let lawsGroupsMarkup;
   if (lawsGroups) {
     lawsGroupsMarkup = lawsGroups.map(group => {
-      const isCurrent = selectedLawGroup.id_type === group.id_type;
+      const isCurrent = selectedLawGroup.id === group.id;
       return (
-        <tr key={group.id_type}>
+        <tr key={group.id}>
           {isAdmin ?
             (<>
               <th scope="row" className='small-cell'>{isCurrent ? `+` : ''}</th>
             </>) : (null)}
-          <td dangerouslySetInnerHTML={{ __html: group.type_name }}></td>
+          <td dangerouslySetInnerHTML={{ __html: group.name }}></td>
           <td><input type="color" className="form-control form-control-color disabled" value={group.color} readOnly onClick={(e) => { e.preventDefault(); }} /></td>
           {isAdmin ?
             (<>

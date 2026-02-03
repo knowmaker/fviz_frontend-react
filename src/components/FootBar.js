@@ -1,7 +1,8 @@
 import React,{useContext} from 'react';
 import { UserProfile,TableContext } from '../misc/contexts.js';
 import { showMessage } from '../misc/message.js';
-import setStateFromGetAPI,{ putDataToAPI,isResponseSuccessful } from '../misc/api.js';
+import setStateFromGetAPI, { patchDataToAPI, isResponseSuccessful } from '../misc/api.js';
+import { SELECTED_SYSTEM_TYPE_ID } from '../misc/constants';
 import { Button } from '../components/ButtonWithLoad.js';
 
 const API_BASE = () => process.env.REACT_APP_API_LINK;
@@ -31,7 +32,7 @@ export default function Footbar({hoveredCell,selectedLawState,getImage,tableView
   }
 
   const removeCurrentLaw = () => {
-    selectedLawState.setSelectedLaw({law_name: null,cells:[],id_type: null})
+    selectedLawState.setSelectedLaw({ name: null, cells: [], law_group_id: null });
   }
 
   const downloadPDF = async () => {
@@ -69,22 +70,22 @@ export default function Footbar({hoveredCell,selectedLawState,getImage,tableView
 
   const updateTableView = async () => {
 
-     const cellIds = Object.values(tableState)[0].map(cell => cell.id_value)
+     const cellIds = Object.values(tableState)[0].map(cell => cell.id).filter(id => id !== -1);
 
-     const newTableView = {
+     const payload = {
        title: tableViewState.tableView.title,
-       active_quantities: cellIds,
-     }
+       quantity_ids: cellIds,
+     };
 
-     const changedTableViewResponseData = await putDataToAPI(`${API_BASE()}/represents/${tableViewState.tableView.id_repr}`,newTableView,headers)
+     const changedTableViewResponseData = await patchDataToAPI(`${API_BASE()}/represents/${tableViewState.tableView.id}`, payload, headers);
      if (!isResponseSuccessful(changedTableViewResponseData)) {
-       showMessage(changedTableViewResponseData.data.error,"error")
+       showMessage(changedTableViewResponseData.data?.detail || changedTableViewResponseData.data?.error, "error");
        return
      }
 
-     setStateFromGetAPI(setTableViews, `${API_BASE()}/represents`,undefined,headers)
+     setStateFromGetAPI(setTableViews, `${API_BASE()}/represents/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
 
-     showMessage("Представление обновлено")
+     showMessage("Представление обновлено");
 
   }
 

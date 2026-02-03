@@ -24,21 +24,18 @@ export function EditProfileModal({ modalsVisibility, userInfoState }) {
     const patronymic = document.getElementById("InputPatronymic3").value;
     const password = document.getElementById("InputPassword3").value;
 
-    let newUserData = {
-      user: {
-        last_name: lastName,
-        first_name: firstName,
-        patronymic: patronymic,
-      }
+    const newUserData = {
+      last_name: lastName,
+      first_name: firstName,
+      patronymic: patronymic,
     };
-
     if (password !== "") {
-      newUserData.user.password = password;
+      newUserData.password = password;
     }
 
-    const editUserResponse = await patchDataToAPI(`${API_BASE()}/users/update`, newUserData, headers);
+    const editUserResponse = await patchDataToAPI(`${API_BASE()}/users/me`, newUserData, headers);
     if (!isResponseSuccessful(editUserResponse)) {
-      showMessage(editUserResponse.data.error, "error");
+      showMessage(editUserResponse.data?.detail || editUserResponse.data?.error, "error");
       return;
     }
 
@@ -50,7 +47,7 @@ export function EditProfileModal({ modalsVisibility, userInfoState }) {
     document.getElementById("InputEmail1").value = "";
     document.getElementById("InputPassword1").value = "";
 
-    setStateFromGetAPI(userInfoState.setUserProfile, `${API_BASE()}/users/profile`, undefined, headers )
+    setStateFromGetAPI(userInfoState.setUserProfile, `${API_BASE()}/users/me`, undefined, headers)
 
   };
 
@@ -59,9 +56,10 @@ export function EditProfileModal({ modalsVisibility, userInfoState }) {
       return;
     }
 
-    const deleteUserResponse = await deleteDataFromAPI(`${API_BASE()}/delete`, undefined, headers);
+    const password = document.getElementById("InputPassword3")?.value || "";
+    const deleteUserResponse = await deleteDataFromAPI(`${API_BASE()}/users/me`, { password }, headers);
     if (!isResponseSuccessful(deleteUserResponse)) {
-      showMessage(deleteUserResponse.data.error, "error");
+      showMessage(deleteUserResponse.data?.detail || deleteUserResponse.data?.error, "error");
       return;
     }
     showMessage("Аккаунт удалён");

@@ -49,30 +49,26 @@ export function patchDataToAPI(adress,data, headers = undefined) {
 
 }
 
-export function deleteDataFromAPI(adress,data, headers = undefined) {
+export function deleteDataFromAPI(adress, data, headers = undefined) {
   return new Promise(async function(resolve) {
     try {
-      const response = await axios.delete(adress, {headers: headers})
-      console.log(adress,data,{headers: headers})
-      resolve(response)
+      const response = await axios.delete(adress, { headers, data });
+      resolve(response);
     } catch (error) {
-      resolve(error.response)
-      console.log(adress,data, headers)
+      resolve(error.response);
     }
-  })
-
+  });
 }
 
-export function getAllCellDataFromAPI(cells,headers) {
+export function getAllCellDataFromAPI(cells, headers) {
 
-  let requests = cells.map(cell => axios.get(`${process.env.REACT_APP_API_LINK}/quantities/${cell}`, {headers: headers}));
+  const requests = cells.map(cell => axios.get(`${process.env.REACT_APP_API_LINK}/quantities/${cell}`, {headers: headers}));
 
   return new Promise(async function(resolve) {
 
-    const responses = await Promise.allSettled(requests)
-    resolve(responses.map(cellResponse => cellResponse.value))
-  })
-
+    const responses = await Promise.allSettled(requests);
+    resolve(responses.map(cellResponse => cellResponse.value));
+  });
 
 }
 
@@ -81,17 +77,17 @@ export default function setStateFromGetAPI(setStateFunction, adress, afterReques
   axios
       .get(adress, {headers: headers})
       .then((response) => {
+        const data = response.data;
         if (setStateFunction) {
-          setStateFunction(response.data.data);
-        } 
-        if (afterRequestFunction !== undefined) {
-          afterRequestFunction(response.data.data,extraData,{adress:adress,headers:headers});
+          setStateFunction(data);
         }
-        if (!setStateFunction) {return response.data.data}
+        if (afterRequestFunction !== undefined) {
+          afterRequestFunction(data, extraData, {adress: adress, headers: headers});
+        }
+        if (!setStateFunction) { return data; }
       })
       .catch((error) => {
-        console.log("ERROR:",adress,headers)
-        //console.error(error);
+        console.log("ERROR:", adress, headers);
       });
 
 }

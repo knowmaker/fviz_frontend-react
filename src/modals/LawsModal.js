@@ -1,6 +1,7 @@
 import React, { useEffect, useContext } from 'react';
-import setStateFromGetAPI, { postDataToAPI, putDataToAPI, deleteDataFromAPI } from '../misc/api.js';
+import setStateFromGetAPI, { postDataToAPI, patchDataToAPI, deleteDataFromAPI } from '../misc/api.js';
 import { UserProfile } from '../misc/contexts.js';
+import { SELECTED_SYSTEM_TYPE_ID } from '../misc/constants';
 import { isResponseSuccessful } from '../misc/api.js';
 import { checkLaw } from '../components/Table.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
@@ -29,7 +30,7 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
   }, [lawEditorsStates.lawGroupEditorState.value]);
 
   const saveButtonClick = () => {
-    if (selectedLawState.selectedLaw.id_law) {
+    if (selectedLawState.selectedLaw.id) {
       updateLaw();
       return;
     }
@@ -48,29 +49,27 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
       return;
     }
 
-    const selectedLawCellId = selectedLawState.selectedLaw.cells.map(cell => cell.id_value);
-
+    const selectedLawCellId = selectedLawState.selectedLaw.cells.map(cell => cell.id);
     const newLaw = {
-      law: {
-        law_name: convertMarkdownFromEditorState(lawEditorsStates.lawNameEditorState.value),
-        first_element: selectedLawCellId[0],
-        second_element: selectedLawCellId[1],
-        third_element: selectedLawCellId[2],
-        fourth_element: selectedLawCellId[3],
-        id_type: document.getElementById("inputLawGroup3").value !== "-1" ? document.getElementById("inputLawGroup3").value : null
-      }
+      name: convertMarkdownFromEditorState(lawEditorsStates.lawNameEditorState.value),
+      first_quantity_id: selectedLawCellId[0],
+      second_quantity_id: selectedLawCellId[1],
+      third_quantity_id: selectedLawCellId[2],
+      fourth_quantity_id: selectedLawCellId[3],
+      law_group_id: document.getElementById("inputLawGroup3").value !== "-1" ? document.getElementById("inputLawGroup3").value : null,
+      system_type_id: SELECTED_SYSTEM_TYPE_ID,
     };
 
     const newLawResponseData = await postDataToAPI(`${API_BASE()}/laws`, newLaw, headers);
     if (!isResponseSuccessful(newLawResponseData)) {
-      showMessage(newLawResponseData.data.error, "error");
+      showMessage(newLawResponseData.data?.detail || newLawResponseData.data?.error, "error");
       return;
     }
 
-    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws`, undefined, headers);
+    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
 
     selectedLawState.setSelectedLaw({
-      ...newLawResponseData.data.data,
+      ...newLawResponseData.data,
       cells: selectedLawState.selectedLaw.cells,
     });
 
@@ -90,26 +89,19 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
       return;
     }
 
-    const selectedLawCellId = selectedLawState.selectedLaw.cells.map(cell => cell.id_value);
-
-    const newLaw = {
-      law: {
-        law_name: convertMarkdownFromEditorState(lawEditorsStates.lawNameEditorState.value),
-        first_element: selectedLawCellId[0],
-        second_element: selectedLawCellId[1],
-        third_element: selectedLawCellId[2],
-        fourth_element: selectedLawCellId[3],
-        id_type: document.getElementById("inputLawGroup3").value !== "-1" ? document.getElementById("inputLawGroup3").value : null
-      }
+    const selectedLawCellId = selectedLawState.selectedLaw.cells.map(cell => cell.id);
+    const updatePayload = {
+      name: convertMarkdownFromEditorState(lawEditorsStates.lawNameEditorState.value),
+      law_group_id: document.getElementById("inputLawGroup3").value !== "-1" ? document.getElementById("inputLawGroup3").value : null,
     };
 
-    const changedLawResponseData = await putDataToAPI(`${API_BASE()}/laws/${selectedLawState.selectedLaw.id_law}`, newLaw, headers);
+    const changedLawResponseData = await patchDataToAPI(`${API_BASE()}/laws/${selectedLawState.selectedLaw.id}`, updatePayload, headers);
     if (!isResponseSuccessful(changedLawResponseData)) {
-      showMessage(changedLawResponseData.data.error, "error");
+      showMessage(changedLawResponseData.data?.detail || changedLawResponseData.data?.error, "error");
       return;
     }
 
-    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws`, undefined, headers);
+    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
 
     showMessage("Закон обновлён");
 
@@ -123,13 +115,13 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
 
     const law = selectedLawState.selectedLaw;
 
-    const lawDeleteResponseData = await deleteDataFromAPI(`${API_BASE()}/laws/${law.id_law}`, undefined, headers);
+    const lawDeleteResponseData = await deleteDataFromAPI(`${API_BASE()}/laws/${law.id}`, undefined, headers);
     if (!isResponseSuccessful(lawDeleteResponseData)) {
-      showMessage(lawDeleteResponseData.data.error, "error");
+      showMessage(lawDeleteResponseData.data?.detail || lawDeleteResponseData.data?.error, "error");
       return;
     }
 
-    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws`, undefined, headers);
+    setStateFromGetAPI(lawsState.setLaws, `${API_BASE()}/laws/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
 
     showMessage("Закон удалён");
 
@@ -141,10 +133,10 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
 
   const lawsGroupList = lawsGroupsState.lawsGroups.map(lawGroup => {
 
-    const shownText = `${lawGroup.type_name}`;
+    const shownText = `${lawGroup.name}`;
 
     return (
-      <option key={lawGroup.id_type} value={lawGroup.id_type} dangerouslySetInnerHTML={{ __html: shownText }} />
+      <option key={lawGroup.id} value={lawGroup.id} dangerouslySetInnerHTML={{ __html: shownText }} />
     );
 
   });
@@ -155,7 +147,7 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
 
 
   const lawFormulaSymbols = selectedLaw.cells.length >= 4 ? `${selectedLaw.cells[0].symbol} * ${selectedLaw.cells[2].symbol} = ${selectedLaw.cells[1].symbol} * ${selectedLaw.cells[3].symbol}` : "";
-  const lawFormulaNames = selectedLaw.cells.length >= 4 ? `${selectedLaw.cells[0].value_name} * ${selectedLaw.cells[2].value_name} = <br> = ${selectedLaw.cells[1].value_name} * ${selectedLaw.cells[3].value_name}` : "";
+  const lawFormulaNames = selectedLaw.cells.length >= 4 ? `${selectedLaw.cells[0].name} * ${selectedLaw.cells[2].name} = <br> = ${selectedLaw.cells[1].name} * ${selectedLaw.cells[3].name}` : "";
 
   return (
     <Modal
@@ -203,7 +195,7 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
 
       <div className="modal-footer2">
         <Button type="button" className="btn btn-success me-1" onClick={(e) => saveButtonClick(e)}>Сохранить</Button>
-        {selectedLaw.id_law ?
+        {selectedLaw.id ?
           (<>
             <Button type="button" className="btn btn-danger" onClick={(e) => deleteLaw(e)}>Удалить</Button>
           </>) : (null)}

@@ -25,16 +25,9 @@ export function RegistrationModal({ modalVisibility, setUserToken }) {
     const email = document.getElementById("InputEmail1").value;
     const password = document.getElementById("InputPassword1").value;
 
-    const userData = {
-      user: {
-        email: email,
-        password: password,
-      }
-    };
-
-    const registerResponseData = await postDataToAPI(`${API_BASE()}/users/register`, userData);
+    const registerResponseData = await postDataToAPI(`${API_BASE()}/users/register`, { email });
     if (!isResponseSuccessful(registerResponseData)) {
-      showMessage(registerResponseData.data.error, "error");
+      showMessage(registerResponseData.data?.detail || registerResponseData.data?.error, "error");
       return;
     }
 
@@ -48,22 +41,15 @@ export function RegistrationModal({ modalVisibility, setUserToken }) {
 
     const email = document.getElementById("InputEmail2").value;
     const password = document.getElementById("InputPassword2").value;
-    const userLoginData = {
-      user: {
-        email: email,
-        password: password,
-      }
-    };
-
-    const loginResponse = await postDataToAPI(`${API_BASE()}/users/login`, userLoginData);
+    const loginResponse = await postDataToAPI(`${API_BASE()}/users/login`, { email, password });
 
     if (!isResponseSuccessful(loginResponse)) {
-      showMessage(loginResponse.data.error, "error");
+      showMessage(loginResponse.data?.detail || loginResponse.data?.error, "error");
       return;
     }
 
-    const loginResponseData = loginResponse.data.data;
-    setUserToken(loginResponseData);
+    const token = loginResponse.data.access_token;
+    setUserToken(token);
 
     modalVisibility.setVisibility(false);
     showMessage("Авторизация успешна");
@@ -75,15 +61,9 @@ export function RegistrationModal({ modalVisibility, setUserToken }) {
 
     const email = document.getElementById("InputEmail5").value;
 
-    const userData = {
-      user: {
-        email: email,
-      }
-    };
-
-    const resetPasswordResponse = await postDataToAPI(`${API_BASE()}/users/reset`, userData);
+    const resetPasswordResponse = await postDataToAPI(`${API_BASE()}/users/reset-password`, { email });
     if (!isResponseSuccessful(resetPasswordResponse)) {
-      showMessage(resetPasswordResponse.data.error, "error");
+      showMessage(resetPasswordResponse.data?.detail || resetPasswordResponse.data?.error, "error");
       return;
     }
     showMessage("Письмо сброса пароля выслано");

@@ -21,6 +21,7 @@ import { RegistrationModal } from '../modals/RegModal';
 import { GKLayersImage } from '../modals/GKLayersImageModal';
 import { convertMarkdownToEditorState } from '../misc/converters';
 import { showMessage } from '../misc/message';
+import { SELECTED_SYSTEM_TYPE_ID } from '../misc/constants';
 
 const API_BASE = () => process.env.REACT_APP_API_LINK;
 
@@ -37,24 +38,24 @@ export default function Home() {
 
       const headers = {
         Authorization: `Bearer ${userToken}`
-      }
+      };
 
-      setStateFromGetAPI(setUserProfile, `${API_BASE()}/users/profile`, undefined, headers )
-      setStateFromGetAPI(setGKLayers,`${API_BASE()}/gk`,undefined,headers)
-      setStateFromGetAPI(setTableViews, `${API_BASE()}/represents`,undefined,headers)
-      setStateFromGetAPI(setLaws, `${API_BASE()}/laws`,undefined,headers)
-      setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_types`,undefined,headers)
+      setStateFromGetAPI(null, `${API_BASE()}/system_types`, undefined, headers);
+      setStateFromGetAPI(setUserProfile, `${API_BASE()}/users/me`, undefined, headers);
+      setStateFromGetAPI(setGKLayers, `${API_BASE()}/gk/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+      setStateFromGetAPI(setTableViews, `${API_BASE()}/represents/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+      setStateFromGetAPI(setLaws, `${API_BASE()}/laws/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+      setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_groups/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
 
-      setStateFromGetAPI(setFullTableData,`${API_BASE()}/active_view`,undefined,headers)
+      setStateFromGetAPI(setFullTableData, `${API_BASE()}/represents/view`, undefined, headers);
 
       localStorage.setItem('token', userToken);
 
     } else {
-      setUserProfile(null)
+      setUserProfile(null);
       const storageToken = localStorage.getItem('token');
       if (!storageToken) {
-        setStateFromGetAPI(setFullTableData,`${API_BASE()}/active_view`,undefined,undefined)
-        console.log()
+        setStateFromGetAPI(setFullTableData, `${API_BASE()}/represents/view`, undefined, undefined);
       }
     }
 
@@ -119,29 +120,29 @@ export default function Home() {
     const [GKLayers, setGKLayers] = useState([]);
     const GKLayersState = {gkColors: GKLayers, setGkColors: setGKLayers}
 
-    const [tableView, setTableView] = useState({id_repr:1,title:"Базовое"});
+    const [tableView, setTableView] = useState({ id: 1, title: "Базовое" });
     const tableViewState = {tableView,setTableView}
 
     useEffect(() => {
 
-      setStateFromGetAPI(setGKLayers,`${API_BASE()}/gk`,undefined,undefined)
+      setStateFromGetAPI(null, `${API_BASE()}/system_types`, undefined, undefined);
+      setStateFromGetAPI(setGKLayers, `${API_BASE()}/gk/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, undefined);
 
       if (userToken) {
 
         const headers = {
           Authorization: `Bearer ${userToken}`
-        }
+        };
 
-        setStateFromGetAPI(setTableViews, `${API_BASE()}/represents`,undefined,headers)
-        setStateFromGetAPI(setLaws, `${API_BASE()}/laws`,undefined,headers)
-        setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_types`,undefined,headers)
-        setStateFromGetAPI(setFullTableData,`${API_BASE()}/active_view/${tableView.id_repr}`,undefined,headers)
-
+        setStateFromGetAPI(setTableViews, `${API_BASE()}/represents/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+        setStateFromGetAPI(setLaws, `${API_BASE()}/laws/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+        setStateFromGetAPI(setLawsGroups, `${API_BASE()}/law_groups/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
+        setStateFromGetAPI(setFullTableData, `${API_BASE()}/represents/${tableView.id}/view`, undefined, headers);
 
       } else {
         const storageToken = localStorage.getItem('token');
         if (!storageToken) {
-          setStateFromGetAPI(setFullTableData,`${API_BASE()}/active_view`,undefined,undefined)
+          setStateFromGetAPI(setFullTableData, `${API_BASE()}/represents/view`, undefined, undefined);
         }
       }
 
@@ -150,9 +151,8 @@ export default function Home() {
 
 
     const setFullTableData = (result) => {
-
-      setTableData(result.active_quantities)
-      setTableView({id_repr:result.id_repr,title:result.title})
+      setTableData(result.quantities);
+      setTableView({ id: result.represent.id, title: result.represent.title});
     }
 
     useEffect(() => {
@@ -167,7 +167,7 @@ export default function Home() {
             Authorization: `Bearer ${storageToken}`
           }
 
-          const profileResponseData = await getDataFromAPI(`${API_BASE()}/users/profile`,headers)
+          const profileResponseData = await getDataFromAPI(`${API_BASE()}/users/me`, headers)
           if (!isResponseSuccessful(profileResponseData)) {
             localStorage.removeItem('token')
             return
@@ -228,7 +228,7 @@ export default function Home() {
     const [laws, setLaws] = useState(null)
     const lawsState = {laws, setLaws}
 
-    const [selectedLaw, setSelectedLaw] = useState({law_name: null,cells:[],id_type: null})
+    const [selectedLaw, setSelectedLaw] = useState({ name: null, cells: [], law_group_id: null })
     const selectedLawState = {selectedLaw, setSelectedLaw}
 
     const [lawsGroups, setLawsGroups] = useState([])
@@ -243,7 +243,7 @@ export default function Home() {
 
         if (event.key === 'Escape') {
           event.preventDefault();
-          setSelectedLaw({law_name: null,cells:[],id_type: null})
+          setSelectedLaw({ name: null, cells: [], law_group_id: null })
           modalsVisibility.lawsModalVisibility.setVisibility(false)
         }
       };
@@ -261,39 +261,37 @@ export default function Home() {
       async function setSelectedCell() {
         if (selectedCell) {
 
-          if (selectedCell.id_value === -1) {
+          if (selectedCell.id === -1) {
 
-            convertMarkdownToEditorState(setCellNameEditor, selectedCell.value_name ? selectedCell.value_name :"")
-            convertMarkdownToEditorState(setCellSymbolEditor, selectedCell.symbol ? selectedCell.symbol :"")
-            convertMarkdownToEditorState(setCellUnitEditor, selectedCell.unit ? selectedCell.unit :"")
+            convertMarkdownToEditorState(setCellNameEditor, selectedCell.name ? selectedCell.name : "")
+            convertMarkdownToEditorState(setCellSymbolEditor, selectedCell.symbol ? selectedCell.symbol : "")
+            convertMarkdownToEditorState(setCellUnitEditor, selectedCell.unit ? selectedCell.unit : "")
             document.getElementById("inputL3").value = selectedCell.l_indicate
             document.getElementById("inputT3").value = selectedCell.t_indicate
-            document.getElementById("inputGK3").value = selectedCell.id_gk
+            document.getElementById("inputGK3").value = selectedCell.gk_id
 
             return
           }
 
-          let cellData
-          if (selectedCell.g_indicate === undefined && selectedCell.id_value !== 1) {
+          let cellData;
+          if (selectedCell.g_indicate === undefined && selectedCell.id !== 1) {
 
-            const cellResponseData = await getDataFromAPI(`${API_BASE()}/quantities/${selectedCell.id_value}`)
+            const cellResponseData = await getDataFromAPI(`${API_BASE()}/quantities/${selectedCell.id}`);
             if (!isResponseSuccessful(cellResponseData)) {
-              showMessage(cellResponseData.data.error,"error")
+              showMessage(cellResponseData.data?.detail || cellResponseData.data?.error, "error");
               return
             }
-            cellData = cellResponseData.data.data
+            cellData = cellResponseData.data;
 
+          } else { cellData = selectedCell; }
 
-          } else {cellData = selectedCell}
-
-
-          convertMarkdownToEditorState(setCellNameEditor, cellData.value_name)
-          convertMarkdownToEditorState(setCellSymbolEditor, cellData.symbol)
-          convertMarkdownToEditorState(setCellUnitEditor, cellData.unit)
-          document.getElementById("inputL3").value = cellData.l_indicate
-          document.getElementById("inputT3").value = cellData.t_indicate
-          document.getElementById("inputGK3").value = cellData.id_gk
-        }  else {
+          convertMarkdownToEditorState(setCellNameEditor, cellData.name);
+          convertMarkdownToEditorState(setCellSymbolEditor, cellData.symbol);
+          convertMarkdownToEditorState(setCellUnitEditor, cellData.unit);
+          document.getElementById("inputL3").value = cellData.l_indicate;
+          document.getElementById("inputT3").value = cellData.t_indicate;
+          document.getElementById("inputGK3").value = cellData.gk_id;
+        } else {
           convertMarkdownToEditorState(setCellNameEditor, "")
           convertMarkdownToEditorState(setCellSymbolEditor, "")
           convertMarkdownToEditorState(setCellUnitEditor, "")

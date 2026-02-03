@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
-import setStateFromGetAPI, { getDataFromAPI, postDataToAPI, putDataToAPI, deleteDataFromAPI } from '../misc/api.js';
+import setStateFromGetAPI, { getDataFromAPI, postDataToAPI, patchDataToAPI, deleteDataFromAPI } from '../misc/api.js';
 import { UserProfile, TableContext } from '../misc/contexts.js';
+import { SELECTED_SYSTEM_TYPE_ID } from '../misc/constants';
 import { EditorState } from 'draft-js';
 import { isResponseSuccessful } from '../misc/api.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
@@ -33,20 +34,20 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
 
   const selectTableView = async (tableView) => {
 
-    revStates.setUndoStack([])
-    revStates.setRedoStack([])
+    revStates.setUndoStack([]);
+    revStates.setRedoStack([]);
 
-    selectedLawState.setSelectedLaw({ law_name: null, cells: [], id_type: null })
+    selectedLawState.setSelectedLaw({ name: null, cells: [], law_group_id: null });
 
-    const tableViewDataResponse = await getDataFromAPI(`${API_BASE()}/active_view/${tableView.id_repr}`, headers);
+    const tableViewDataResponse = await getDataFromAPI(`${API_BASE()}/represents/${tableView.id}/view`, headers);
     if (!isResponseSuccessful(tableViewDataResponse)) {
-      showMessage(tableViewDataResponse.data.error, "error");
+      showMessage(tableViewDataResponse.data?.detail || tableViewDataResponse.data?.error, "error");
       return;
     }
-    const tableViewData = tableViewDataResponse.data.data;
+    const tableViewData = tableViewDataResponse.data;
 
-    tableViewState.setTableView({ id_repr: tableView.id_repr, title: tableViewData.title });
-    tableState.setTableData(tableViewData.active_quantities);
+    tableViewState.setTableView({ id: tableViewData.id, title: tableViewData.title });
+    tableState.setTableData(tableViewData.quantities);
 
     convertMarkdownToEditorState(setTableViewEditorState, tableViewData.title);
 
@@ -54,22 +55,22 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
 
   const updateTableView = async () => {
 
-    const cellIds = Object.values(tableState)[0].map(cell => cell.id_value).filter(id => id !== -1);
+    const cellIds = Object.values(tableState)[0].map(cell => cell.id).filter(id => id !== -1);
 
     const tableViewTitle = convertMarkdownFromEditorState(tableViewEditorState);
 
-    const newTableView = {
+    const payload = {
       title: tableViewTitle,
-      active_quantities: cellIds,
+      quantity_ids: cellIds,
     };
 
-    const changedTableViewResponseData = await putDataToAPI(`${API_BASE()}/represents/${tableViewState.tableView.id_repr}`, newTableView, headers);
+    const changedTableViewResponseData = await patchDataToAPI(`${API_BASE()}/represents/${tableViewState.tableView.id}`, payload, headers);
     if (!isResponseSuccessful(changedTableViewResponseData)) {
-      showMessage(changedTableViewResponseData.data.error, "error");
+      showMessage(changedTableViewResponseData.data?.detail || changedTableViewResponseData.data?.error, "error");
       return;
     }
 
-    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents`, undefined, headers);
+    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
 
     showMessage("Представление обновлено");
 
@@ -81,13 +82,13 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
       return;
     }
 
-    const tableViewDeleteResponseData = await deleteDataFromAPI(`${API_BASE()}/represents/${tableView.id_repr}`, undefined, headers);
+    const tableViewDeleteResponseData = await deleteDataFromAPI(`${API_BASE()}/represents/${tableView.id}`, undefined, headers);
     if (!isResponseSuccessful(tableViewDeleteResponseData)) {
-      showMessage(tableViewDeleteResponseData.data.error, "error");
+      showMessage(tableViewDeleteResponseData.data?.detail || tableViewDeleteResponseData.data?.error, "error");
       return;
     }
 
-    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents`, undefined, headers);
+    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
 
     showMessage("Представление удалено");
 
@@ -95,13 +96,15 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
 
   const createTableView = async () => {
 
-    const cellIds = Object.values(tableState)[0].map(cell => cell.id_value).filter(id => id !== -1);
+    const cellIds = Object.values(tableState)[0].map(cell => cell.id).filter(id => id !== -1);
 
     const tableViewTitle = convertMarkdownFromEditorState(tableViewEditorState);
 
     const newTableView = {
       title: tableViewTitle,
-      active_quantities: cellIds,
+      quantity_ids: cellIds,
+      system_type_id: `${SELECTED_SYSTEM_TYPE_ID}`,
+      is_active: true,
     };
     const newTableViewResponseData = await postDataToAPI(`${API_BASE()}/represents`, newTableView, headers);
     if (!isResponseSuccessful(newTableViewResponseData)) {
@@ -109,7 +112,7 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
       return;
     }
 
-    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents`, undefined, headers);
+    setStateFromGetAPI(setTableViews, `${API_BASE()}/represents/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
 
     showMessage("Представление создано");
 
@@ -120,10 +123,10 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
   if (tableViews) {
     tableViewsMarkup = tableViews.map(tableView => {
 
-      const isCurrent = tableView.id_repr === tableViewState.tableView.id_repr;
+      const isCurrent = tableView.id === tableViewState.tableView.id;
 
       return (
-        <tr key={tableView.id_repr}>
+        <tr key={tableView.id}>
           <th scope="row" className='small-cell'>{isCurrent ? `+` : ''}</th>
           <td dangerouslySetInnerHTML={{ __html: tableView.title }}></td>
           <td className='small-cell'><button type="button" className="btn btn-primary btn-sm" onClick={() => selectTableView(tableView)}>📝</button></td>

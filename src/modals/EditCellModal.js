@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { getDataFromAPI, postDataToAPI, putDataToAPI, deleteDataFromAPI } from '../misc/api.js';
+import { getDataFromAPI, postDataToAPI, patchDataToAPI, deleteDataFromAPI } from '../misc/api.js';
 import { UserProfile, TableContext } from '../misc/contexts.js';
 import { Cell } from '../components/Table.js';
 import { isResponseSuccessful } from '../misc/api.js';
@@ -7,6 +7,7 @@ import { convertMarkdownFromEditorState } from '../pages/Home.js';
 import { showMessage } from '../misc/message.js';
 import { convertToMLTI, convertNumberToUnicodePower } from '../misc/converters.js';
 import { convertMarkdownToEditorState } from '../misc/converters';
+import { SELECTED_SYSTEM_TYPE_ID } from '../misc/constants';
 import { Modal } from './Modal.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
 import { Button } from '../components/ButtonWithLoad.js';
@@ -23,7 +24,7 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
 
   let isAdmin = false;
   if (userInfoState.userProfile) {
-    isAdmin = userInfoState.userProfile.role;
+    isAdmin = userInfoState.userProfile.is_admin;
   }
 
   const [currentModalLocaleFields, setCurrentModalLocaleFields] = useState(null);
@@ -33,17 +34,16 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
     if (selectedCellState.selectedCell) {
       setCurrentModalLocaleFields({
         ...currentModalLocaleFields,
-        id_gk: selectedCellState.selectedCell.id_gk,
+        gk_id: selectedCellState.selectedCell.gk_id,
         l_indicate: selectedCellState.selectedCell.l_indicate,
         t_indicate: selectedCellState.selectedCell.t_indicate,
         symbol: selectedCellState.selectedCell.symbol,
         ru: {
-          value_name: selectedCellState.selectedCell.value_name,
+          name: selectedCellState.selectedCell.name,
           unit: selectedCellState.selectedCell.unit,
         }
       })
     }
-
 
   }, [selectedCellState.selectedCell]);
 
@@ -70,37 +70,38 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
 
     const currentModalLocaleFieldsUpdated = {
       ...currentModalLocaleFields,
-      id_gk: parseInt(document.getElementById("inputGK3").value),
+      gk_id: parseInt(document.getElementById("inputGK3").value),
       l_indicate: parseInt(document.getElementById("inputL3").value),
       t_indicate: parseInt(document.getElementById("inputT3").value),
       symbol: convertMarkdownFromEditorState(cellEditorsStates.cellSymbolEditorState.value).split("/n").join(""),
       ru: {
-        value_name: convertMarkdownFromEditorState(cellEditorsStates.cellNameEditorState.value).split("/n").join(""),
+        name: convertMarkdownFromEditorState(cellEditorsStates.cellNameEditorState.value).split("/n").join(""),
         unit: convertMarkdownFromEditorState(cellEditorsStates.cellUnitEditorState.value).split("/n").join(""),
       }
     }
 
     setCurrentModalLocaleFields(currentModalLocaleFieldsUpdated)
 
-    if (selectedCell.id_value === -1) {
+    if (selectedCell.id === -1) {
       const createdCellData = await createCell(currentModalLocaleFieldsUpdated);
       if (createdCellData) {
-        tableState.setTableData(tableState.tableData.filter(cell => cell.id_lt !== createdCellData.id_lt).concat(createdCellData));
+        tableState.setTableData(tableState.tableData.filter(cell => cell.lt_id !== createdCellData.lt_id).concat(createdCellData));
         modalVisibility.setVisibility(false);
       }
       return;
     }
 
-    const updated = await updateCell(currentModalLocaleFieldsUpdated, selectedCell.id_value);
+    const updated = await updateCell(currentModalLocaleFieldsUpdated, selectedCell.id);
     if (updated) {
       showMessage("Ячейка была изменена");
     }
   };
 
   const updateCell = async (currentModalFields, cellId) => {
-    const id_gk = currentModalFields.id_gk;
-    const G_indicate = gkColors.find(gkLevel => gkLevel.id_gk === id_gk).g_indicate;
-    const K_indicate = gkColors.find(gkLevel => gkLevel.id_gk === id_gk).k_indicate;
+    const gk_id = currentModalFields.gk_id;
+    const gkLevel = gkColors.find(g => g.id === gk_id);
+    const G_indicate = gkLevel.g_indicate;
+    const K_indicate = gkLevel.k_indicate;
     const l_indicate = currentModalFields.l_indicate;
     const t_indicate = currentModalFields.t_indicate;
     const M_indicate = 0 - (G_indicate * -1 + K_indicate);
@@ -109,35 +110,31 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
     const I_indicate = 0 - K_indicate * -1;
 
     const newCell = {
-      quantity: {
-        value_name: currentModalFields.ru.value_name,
-        symbol: currentModalFields.symbol,
-        unit: currentModalFields.ru.unit,
-        l_indicate: l_indicate,
-        t_indicate: t_indicate,
-        id_gk: id_gk,
-        m_indicate_auto: M_indicate,
-        l_indicate_auto: L_indicate,
-        t_indicate_auto: T_indicate,
-        i_indicate_auto: I_indicate,
-        mlti_sign: convertToMLTI(M_indicate, L_indicate, T_indicate, I_indicate)
-      }
+      name: currentModalFields.ru.name,
+      symbol: currentModalFields.symbol,
+      unit: currentModalFields.ru.unit,
+      m_indicate: String(M_indicate),
+      l_indicate: String(L_indicate),
+      t_indicate: String(T_indicate),
+      i_indicate: String(I_indicate),
+      gk_id,
+      lt_id: selectedCell.lt_id,
     };
 
-    const changedCellResponseData = await putDataToAPI(`${API_BASE()}/quantities/${cellId}`, newCell, headers);
+    const changedCellResponseData = await patchDataToAPI(`${API_BASE()}/quantities/${cellId}`, newCell, headers);
     if (!isResponseSuccessful(changedCellResponseData)) {
-      showMessage(changedCellResponseData.data.error, "error");
+      showMessage(changedCellResponseData.data?.detail || changedCellResponseData.data?.error, "error");
       return false;
     }
-    const cellData = changedCellResponseData.data.data;
+    const cellData = changedCellResponseData.data;
 
-    tableState.setTableData(tableState.tableData.filter(cell => cell.id_value !== cellData.id_value).concat(cellData));
+    tableState.setTableData(tableState.tableData.filter(cell => cell.id !== cellData.id).concat(cellData));
 
-    const cellAlternativesResponseData = await getDataFromAPI(`${API_BASE()}/layers/${selectedCell.id_lt}`, headers);
+    const cellAlternativesResponseData = await getDataFromAPI(`${API_BASE()}/quantities/by-system-type/${SELECTED_SYSTEM_TYPE_ID}/by-lt/${selectedCell.lt_id}`, headers);
     if (isResponseSuccessful(cellAlternativesResponseData)) {
-      const cellAlternatives = cellAlternativesResponseData.data.data;
-      if (cellAlternatives.length > 0 && cellData.id_lt !== selectedCell.id_lt) {
-        tableState.setTableData(tableState.tableData.filter(cell => cell.id_value !== cellData.id_value).concat(cellData).filter(cell => cell.id_lt !== selectedCell.id_lt).concat(cellAlternatives[0]));
+      const cellAlternatives = cellAlternativesResponseData.data;
+      if (cellAlternatives.length > 0 && cellData.lt_id !== selectedCell.lt_id) {
+        tableState.setTableData(tableState.tableData.filter(cell => cell.id !== cellData.id).concat(cellData).filter(cell => cell.lt_id !== selectedCell.lt_id).concat(cellAlternatives[0]));
       }
     }
 
@@ -146,9 +143,10 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
   };
 
   const createCell = async (currentModalFields) => {
-    const id_gk = currentModalFields.id_gk;
-    const G_indicate = gkColors.find(gkLevel => gkLevel.id_gk === id_gk).g_indicate;
-    const K_indicate = gkColors.find(gkLevel => gkLevel.id_gk === id_gk).k_indicate;
+    const gk_id = currentModalFields.gk_id;
+    const gkLevel = gkColors.find(g => g.id === gk_id);
+    const G_indicate = gkLevel.g_indicate;
+    const K_indicate = gkLevel.k_indicate;
     const l_indicate = currentModalFields.l_indicate;
     const t_indicate = currentModalFields.t_indicate;
     const M_indicate = 0 - (G_indicate * -1 + K_indicate);
@@ -157,27 +155,24 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
     const I_indicate = 0 - K_indicate * -1;
 
     const newCell = {
-      quantity: {
-        value_name: currentModalFields.ru.value_name,
-        symbol: currentModalFields.symbol,
-        unit: currentModalFields.ru.unit,
-        l_indicate: l_indicate,
-        t_indicate: t_indicate,
-        id_gk: id_gk,
-        m_indicate_auto: M_indicate,
-        l_indicate_auto: L_indicate,
-        t_indicate_auto: T_indicate,
-        i_indicate_auto: I_indicate,
-        mlti_sign: convertToMLTI(M_indicate, L_indicate, T_indicate, I_indicate)
-      }
+      name: currentModalFields.ru.name,
+      symbol: currentModalFields.symbol,
+      unit: currentModalFields.ru.unit,
+      m_indicate: String(M_indicate),
+      l_indicate: String(L_indicate),
+      t_indicate: String(T_indicate),
+      i_indicate: String(I_indicate),
+      gk_id,
+      lt_id: selectedCell.lt_id,
+      system_type_id: SELECTED_SYSTEM_TYPE_ID,
     };
 
     const createdCellResponseData = await postDataToAPI(`${API_BASE()}/quantities`, newCell, headers);
     if (!isResponseSuccessful(createdCellResponseData)) {
-      showMessage(createdCellResponseData.data.error, "error");
+      showMessage(createdCellResponseData.data?.detail || createdCellResponseData.data?.error, "error");
       return null;
     }
-    return createdCellResponseData.data.data;
+    return createdCellResponseData.data;
   };
 
   const deleteCell = async () => {
@@ -191,19 +186,19 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
       return;
     }
 
-    const cellDeleteResponseData = await deleteDataFromAPI(`${API_BASE()}/quantities/${selectedCell.id_value}`, undefined, headers);
+    const cellDeleteResponseData = await deleteDataFromAPI(`${API_BASE()}/quantities/${selectedCell.id}`, undefined, headers);
     if (!isResponseSuccessful(cellDeleteResponseData)) {
-      showMessage(cellDeleteResponseData.data.error, "error");
+      showMessage(cellDeleteResponseData.data?.detail || cellDeleteResponseData.data?.error, "error");
       return;
     }
 
-    tableState.setTableData(tableState.tableData.filter(cell => cell.id_value !== selectedCell.id_value));
+    tableState.setTableData(tableState.tableData.filter(cell => cell.id !== selectedCell.id));
 
-    const cellAlternativesResponseData = await getDataFromAPI(`${API_BASE()}/layers/${selectedCell.id_lt}`, headers);
+    const cellAlternativesResponseData = await getDataFromAPI(`${API_BASE()}/quantities/by-system-type/${SELECTED_SYSTEM_TYPE_ID}/by-lt/${selectedCell.lt_id}`, headers);
     if (isResponseSuccessful(cellAlternativesResponseData)) {
-      const cellAlternatives = cellAlternativesResponseData.data.data;
+      const cellAlternatives = cellAlternativesResponseData.data;
       if (cellAlternatives.length > 0) {
-        tableState.setTableData(tableState.tableData.filter(cell => cell.id_value !== selectedCell.id_value).concat(cellAlternatives[0]));
+        tableState.setTableData(tableState.tableData.filter(cell => cell.id !== selectedCell.id).concat(cellAlternatives[0]));
       }
     }
 
@@ -212,15 +207,15 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
   };
 
   const cellList = gkColors.map(gkLevel => {
-    const shownText = `${gkLevel.gk_name} G${convertNumberToUnicodePower(gkLevel.g_indicate)}K<sup>${convertNumberToUnicodePower(gkLevel.k_indicate)}</sup>`;
+    const shownText = `${gkLevel.name} G${convertNumberToUnicodePower(gkLevel.g_indicate)}K<sup>${convertNumberToUnicodePower(gkLevel.k_indicate)}</sup>`;
     return (
-      <option key={gkLevel.id_gk} value={gkLevel.id_gk} dangerouslySetInnerHTML={{ __html: shownText }} />
+      <option key={gkLevel.id} value={gkLevel.id} dangerouslySetInnerHTML={{ __html: shownText }} />
     );
   });
 
   const [previewCell, setPreviewCell] = useState({
     cellFullId: -1,
-    cellData: { value_name: "не выбрано", symbol: "", unit: "" },
+    cellData: { name: "не выбрано", symbol: "", unit: "" },
     cellColor: undefined
   });
 
@@ -232,13 +227,14 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
   }, [cellEditorsStates, GKoption, selectedCell]);
 
   const updatePreviewCell = () => {
-    const id_gk = parseInt(document.getElementById("inputGK3").value);
-    if (id_gk) {
-      const cellColor = gkColors.find((setting) => setting.id_gk === id_gk).color;
-      const G_indicate = gkColors.find(gkLevel => gkLevel.id_gk === id_gk).g_indicate;
-      const K_indicate = gkColors.find(gkLevel => gkLevel.id_gk === id_gk).k_indicate;
-      const l_indicate = parseInt(document.getElementById("inputL3").value);
-      const t_indicate = parseInt(document.getElementById("inputT3").value);
+    const gk_id = parseInt(document.getElementById("inputGK3").value);
+    if (gk_id) {
+      const gkLevel = gkColors.find(g => g.id === gk_id);
+      const cellColor = gkLevel.color;
+      const G_indicate = gkLevel.g_indicate;
+      const K_indicate = gkLevel.k_indicate;
+      const l_indicate = parseInt(document.getElementById("inputL3").value) || 0;
+      const t_indicate = parseInt(document.getElementById("inputT3").value) || 0;
       const M_indicate = 0 - (G_indicate * -1 + K_indicate);
       const L_indicate = l_indicate - G_indicate * 3;
       const T_indicate = t_indicate - G_indicate * -2;
@@ -246,13 +242,13 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
       setPreviewCell({
         cellFullId: -1,
         cellData: {
-          value_name: convertMarkdownFromEditorState(cellEditorsStates.cellNameEditorState.value),
+          name: convertMarkdownFromEditorState(cellEditorsStates.cellNameEditorState.value),
           symbol: convertMarkdownFromEditorState(cellEditorsStates.cellSymbolEditorState.value),
           unit: convertMarkdownFromEditorState(cellEditorsStates.cellUnitEditorState.value),
-          m_indicate_auto: M_indicate,
-          l_indicate_auto: L_indicate,
-          t_indicate_auto: T_indicate,
-          i_indicate_auto: I_indicate,
+          m_indicate: String(M_indicate),
+          l_indicate: String(L_indicate),
+          t_indicate: String(T_indicate),
+          i_indicate: String(I_indicate),
         },
         cellColor: cellColor,
       });

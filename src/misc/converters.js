@@ -43,6 +43,17 @@ export function convertToMLTI(M, L, T, I) {
   return MLTIHTMLString;
 }
 
+/** Парсит строку дроби с бэкенда ("1", "-2", "1/2", "-3/4") в число */
+export function parseFraction(str) {
+  if (str == null || str === "") return 0;
+  const s = String(str).trim();
+  if (s.includes("/")) {
+    const [num, den] = s.split("/").map(Number);
+    return den ? num / den : 0;
+  }
+  return Number(s) || 0;
+}
+
 export function convertNumberToUnicodePower(number) {
   const numberString = number.toString()
   const unicodeString = numberString.replace("0", "⁰")

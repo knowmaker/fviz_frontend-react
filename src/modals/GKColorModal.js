@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
-import setStateFromGetAPI, { putDataToAPI, getDataFromAPI } from '../misc/api.js';
+import setStateFromGetAPI, { patchDataToAPI } from '../misc/api.js';
 import { UserProfile } from '../misc/contexts.js';
+import { SELECTED_SYSTEM_TYPE_ID } from '../misc/constants';
 import { EditorState } from 'draft-js';
 import { isResponseSuccessful } from '../misc/api.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
@@ -21,12 +22,12 @@ export function GKLayersModal({ modalsVisibility, GKLayersState }) {
   const GKLayers = GKLayersState.gkColors;
   const setGKLayers = GKLayersState.setGkColors;
 
-  const [selectedGKLayer, setSelectedGKLayer] = useState({ ru: { gk_name: null }, id_gk: null, color: null });
+  const [selectedGKLayer, setSelectedGKLayer] = useState({ ru: { name: null }, id: null, color: null });
   const [GKLayerEditorState, setGKLayerEditorState] = useState(EditorState.createEmpty());
 
   let isAdmin = false;
   if (userInfoState.userProfile) {
-    isAdmin = userInfoState.userProfile.role;
+    isAdmin = userInfoState.userProfile.is_admin;
   }
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export function GKLayersModal({ modalsVisibility, GKLayersState }) {
       document.getElementById("InputGKLayerColor3").value = "#000000";
     }
     if (modalsVisibility.GKColorsEditModalVisibility.isVisible === false) {
-      setSelectedGKLayer({ ru: { gk_name: null }, id_gk: null, color: null });
+      setSelectedGKLayer({ ru: { name: null }, id: null, color: null });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modalsVisibility.GKColorsEditModalVisibility.isVisible]);
@@ -43,10 +44,9 @@ export function GKLayersModal({ modalsVisibility, GKLayersState }) {
   const selectGKLayer = async (layer) => {
     const selectedLayer = {
       ...layer,
-      gk_name: null,
-      ru: { gk_name: layer.gk_name },
+      ru: { name: layer.name },
     };
-    convertMarkdownToEditorState(setGKLayerEditorState, selectedLayer.ru.gk_name);
+    convertMarkdownToEditorState(setGKLayerEditorState, selectedLayer.ru.name);
     document.getElementById("InputGKLayerColor3").value = selectedLayer.color;
     setSelectedGKLayer(selectedLayer);
   };
@@ -55,28 +55,26 @@ export function GKLayersModal({ modalsVisibility, GKLayersState }) {
     const selectedLayerUpdated = {
       ...selectedGKLayer,
       ru: {
-        gk_name: convertMarkdownFromEditorState(GKLayerEditorState).split("/n").join("")
+        name: convertMarkdownFromEditorState(GKLayerEditorState).split("/n").join("")
       },
     };
     if (!await updateLayer(selectedLayerUpdated)) {
       return;
     }
-    setStateFromGetAPI(setGKLayers, `${API_BASE()}/gk`, undefined, headers);
+    setStateFromGetAPI(setGKLayers, `${API_BASE()}/gk/by-system-type/${SELECTED_SYSTEM_TYPE_ID}`, undefined, headers);
     showMessage("Системный уровень обновлен");
   };
 
   const updateLayer = async (layer) => {
     const GKLayerColor = layer.color;
-    const GKLayerName = layer.ru.gk_name;
-    const newLawGroup = {
-      gk: {
-        gk_name: GKLayerName,
-        color: GKLayerColor,
-      }
+    const GKLayerName = layer.ru.name;
+    const payload = {
+      name: GKLayerName,
+      color: GKLayerColor,
     };
-    const changedGKLayerResponseData = await putDataToAPI(`${API_BASE()}/gk/${selectedGKLayer.id_gk}`, newLawGroup, headers);
+    const changedGKLayerResponseData = await patchDataToAPI(`${API_BASE()}/gk/${selectedGKLayer.id}`, payload, headers);
     if (!isResponseSuccessful(changedGKLayerResponseData)) {
-      showMessage(changedGKLayerResponseData.data.error, "error");
+      showMessage(changedGKLayerResponseData.data?.detail || changedGKLayerResponseData.data?.error, "error");
       return false;
     }
     return true;
@@ -92,14 +90,14 @@ export function GKLayersModal({ modalsVisibility, GKLayersState }) {
   let GKLayersMarkup;
   if (GKLayers) {
     GKLayersMarkup = GKLayers.map(GKLayer => {
-      const isCurrent = selectedGKLayer.id_gk === GKLayer.id_gk;
+      const isCurrent = selectedGKLayer.id === GKLayer.id;
       return (
-        <tr key={GKLayer.id_gk}>
+        <tr key={GKLayer.id}>
           {isAdmin ?
             (<>
               <th scope="row" className='small-cell'>{isCurrent ? `+` : ""}</th>
             </>) : (null)}
-          <td dangerouslySetInnerHTML={{ __html: GKLayer.gk_name }}></td>
+          <td dangerouslySetInnerHTML={{ __html: GKLayer.name }}></td>
           <td>G<sup>{GKLayer.g_indicate}</sup>K<sup>{GKLayer.k_indicate}</sup></td>
           <td><input type="color" className="form-control form-control-color disabled" value={GKLayer.color} readOnly onClick={(e) => { e.preventDefault(); }} /></td>
           {isAdmin ?
