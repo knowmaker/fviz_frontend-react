@@ -5,7 +5,7 @@ import { Cell } from '../components/Table.js';
 import { isResponseSuccessful } from '../misc/api.js';
 import { convertMarkdownFromEditorState } from '../pages/Home.js';
 import { showMessage } from '../misc/message.js';
-import { convertNumberToUnicodePower } from '../misc/converters.js';
+import { convertNumberToUnicodePower, parseFraction } from '../misc/converters.js';
 import { convertMarkdownToEditorState } from '../misc/converters';
 import { Modal } from './Modal.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
@@ -67,8 +67,8 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
     const currentModalLocaleFieldsUpdated = {
       ...currentModalLocaleFields,
       gk_id: parseInt(document.getElementById("inputGK3").value),
-      l_indicate: parseInt(document.getElementById("inputL3").value),
-      t_indicate: parseInt(document.getElementById("inputT3").value),
+      l_indicate: parseFraction(document.getElementById("inputL3").value),
+      t_indicate: parseFraction(document.getElementById("inputT3").value),
       symbol: convertMarkdownFromEditorState(cellEditorsStates.cellSymbolEditorState.value).split("/n").join(""),
       name: convertMarkdownFromEditorState(cellEditorsStates.cellNameEditorState.value).split("/n").join(""),
       unit: convertMarkdownFromEditorState(cellEditorsStates.cellUnitEditorState.value).split("/n").join(""),
@@ -94,8 +94,8 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
   const updateCell = async (currentModalFields, cellId) => {
     const gk_id = currentModalFields.gk_id;
     const gkLevel = gkColors.find(g => g.id === gk_id);
-    const G_indicate = gkLevel.g_indicate;
-    const K_indicate = gkLevel.k_indicate;
+    const G_indicate = parseFraction(gkLevel.g_indicate);
+    const K_indicate = parseFraction(gkLevel.k_indicate);
     const l_indicate = currentModalFields.l_indicate;
     const t_indicate = currentModalFields.t_indicate;
     const M_indicate = 0 - (G_indicate * -1 + K_indicate);
@@ -139,8 +139,8 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
   const createCell = async (currentModalFields) => {
     const gk_id = currentModalFields.gk_id;
     const gkLevel = gkColors.find(g => g.id === gk_id);
-    const G_indicate = gkLevel.g_indicate;
-    const K_indicate = gkLevel.k_indicate;
+    const G_indicate = parseFraction(gkLevel.g_indicate);
+    const K_indicate = parseFraction(gkLevel.k_indicate);
     const l_indicate = currentModalFields.l_indicate;
     const t_indicate = currentModalFields.t_indicate;
     const M_indicate = 0 - (G_indicate * -1 + K_indicate);
@@ -225,10 +225,10 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
     if (gk_id) {
       const gkLevel = gkColors.find(g => g.id === gk_id);
       const cellColor = gkLevel.color;
-      const G_indicate = gkLevel.g_indicate;
-      const K_indicate = gkLevel.k_indicate;
-      const l_indicate = parseInt(document.getElementById("inputL3").value) || 0;
-      const t_indicate = parseInt(document.getElementById("inputT3").value) || 0;
+      const G_indicate = parseFraction(gkLevel.g_indicate);
+      const K_indicate = parseFraction(gkLevel.k_indicate);
+      const l_indicate = parseFraction(document.getElementById("inputL3").value);
+      const t_indicate = parseFraction(document.getElementById("inputT3").value);
       const M_indicate = 0 - (G_indicate * -1 + K_indicate);
       const L_indicate = l_indicate - G_indicate * 3;
       const T_indicate = t_indicate - G_indicate * -2;
@@ -296,11 +296,11 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
         <div className="row">
           <div className="col">
             <label className="form-label">L</label>
-            <input type="number" min="-10" max="10" step="1" className="form-control" id="inputL3" onChange={() => updatePreviewCell()} disabled={!isAdmin} />
+            <input type="text" className="form-control" id="inputL3" onChange={() => updatePreviewCell()} disabled={!isAdmin} />
           </div>
           <div className="col">
             <label className="form-label">T</label>
-            <input type="number" min="-10" step="1" className="form-control" id="inputT3" onChange={() => updatePreviewCell()} disabled={!isAdmin} />
+            <input type="text" className="form-control" id="inputT3" onChange={() => updatePreviewCell()} disabled={!isAdmin} />
           </div>
         </div>
       </div>
@@ -315,4 +315,3 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
     </Modal>
   );
 }
-

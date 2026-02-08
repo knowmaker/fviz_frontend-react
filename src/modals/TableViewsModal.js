@@ -102,7 +102,6 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
       title: tableViewTitle,
       quantity_ids: cellIds,
       system_type_id: `${systemTypeState.currentSystemTypeId}`,
-      is_active: true,
     };
     const newTableViewResponseData = await postDataToAPI(`${API_BASE()}/represents`, newTableView, headers);
     if (!isResponseSuccessful(newTableViewResponseData)) {

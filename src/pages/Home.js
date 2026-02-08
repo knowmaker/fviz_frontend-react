@@ -120,7 +120,10 @@ export default function Home() {
       return false;
     }
 
-    const responseData = tableViewResponseData.data;
+    return applyRepresentResponse(tableViewResponseData.data);
+  };
+
+  const applyRepresentResponse = (responseData) => {
     if (responseData?.represent) {
       setFullTableData(responseData);
       return true;
@@ -142,11 +145,12 @@ export default function Home() {
 
     const headers = getHeaders();
 
-    const [gkResponse, tableViewsResponse, lawsResponse, lawsGroupsResponse] = await Promise.all([
+    const [gkResponse, tableViewsResponse, lawsResponse, lawsGroupsResponse, representViewResponse] = await Promise.all([
       getDataFromAPI(`${API_BASE()}/gk/by-system-type/${systemTypeId}`, headers),
       getDataFromAPI(`${API_BASE()}/represents/by-system-type/${systemTypeId}`, headers),
       getDataFromAPI(`${API_BASE()}/laws/by-system-type/${systemTypeId}`, headers),
       getDataFromAPI(`${API_BASE()}/law_groups/by-system-type/${systemTypeId}`, headers),
+      getDataFromAPI(`${API_BASE()}/represents/view/by-system-type/${systemTypeId}`, headers),
     ]);
 
     if (isResponseSuccessful(gkResponse)) {
@@ -159,21 +163,14 @@ export default function Home() {
       setLawsGroups(lawsGroupsResponse.data);
     }
 
-    if (!isResponseSuccessful(tableViewsResponse)) {
-      return;
+    if (isResponseSuccessful(tableViewsResponse)) {
+      const nextTableViews = tableViewsResponse.data || [];
+      setTableViews(nextTableViews);
     }
 
-    const nextTableViews = tableViewsResponse.data || [];
-    setTableViews(nextTableViews);
-
-    if (nextTableViews.length === 0) {
-      setTableData([]);
-      setTableView({ id: null, title: '' });
-      return;
+    if (isResponseSuccessful(representViewResponse)) {
+      applyRepresentResponse(representViewResponse.data);
     }
-
-    const activeRepresent = nextTableViews.find((view) => view.is_active) || nextTableViews[0];
-    await loadRepresentView(headers, activeRepresent.id);
   };
 
   useEffect(() => {
