@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import TableUI from '../components/Table';
 import setStateFromGetAPI, { getDataFromAPI } from '../misc/api.js';
@@ -88,6 +88,7 @@ export default function Home() {
   const [systemTypes, setSystemTypes] = useState([]);
   const [currentSystemTypeId, setCurrentSystemTypeId] = useState(null);
   const systemTypeState = { systemTypes, setSystemTypes, currentSystemTypeId, setCurrentSystemTypeId };
+  const skipRepresentViewBySystemTypeRef = useRef(false);
 
   const getHeaders = () => {
     if (!userToken) {
@@ -120,7 +121,12 @@ export default function Home() {
       return false;
     }
 
-    return applyRepresentResponse(tableViewResponseData.data);
+    const isApplied = applyRepresentResponse(tableViewResponseData.data);
+    if (isApplied && !representId) {
+      skipRepresentViewBySystemTypeRef.current = true;
+    }
+
+    return isApplied;
   };
 
   const applyRepresentResponse = (responseData) => {
@@ -144,13 +150,21 @@ export default function Home() {
     }
 
     const headers = getHeaders();
+    const skipRepresentViewBySystemType = skipRepresentViewBySystemTypeRef.current;
+    if (skipRepresentViewBySystemType) {
+      skipRepresentViewBySystemTypeRef.current = false;
+    }
+
+    const representViewPromise = skipRepresentViewBySystemType
+      ? Promise.resolve(null)
+      : getDataFromAPI(`${API_BASE()}/represents/view/by-system-type/${systemTypeId}`, headers);
 
     const [gkResponse, tableViewsResponse, lawsResponse, lawsGroupsResponse, representViewResponse] = await Promise.all([
       getDataFromAPI(`${API_BASE()}/gk/by-system-type/${systemTypeId}`, headers),
       getDataFromAPI(`${API_BASE()}/represents/by-system-type/${systemTypeId}`, headers),
       getDataFromAPI(`${API_BASE()}/laws/by-system-type/${systemTypeId}`, headers),
       getDataFromAPI(`${API_BASE()}/law_groups/by-system-type/${systemTypeId}`, headers),
-      getDataFromAPI(`${API_BASE()}/represents/view/by-system-type/${systemTypeId}`, headers),
+      representViewPromise,
     ]);
 
     if (isResponseSuccessful(gkResponse)) {
@@ -168,7 +182,7 @@ export default function Home() {
       setTableViews(nextTableViews);
     }
 
-    if (isResponseSuccessful(representViewResponse)) {
+    if (representViewResponse && isResponseSuccessful(representViewResponse)) {
       applyRepresentResponse(representViewResponse.data);
     }
   };
