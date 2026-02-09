@@ -5,7 +5,7 @@ import { Cell } from '../components/Table.js';
 import { isResponseSuccessful } from '../misc/api.js';
 import { convertMarkdownFromEditorState } from '../pages/Home.js';
 import { showMessage } from '../misc/message.js';
-import { convertNumberToUnicodePower, parseFraction } from '../misc/converters.js';
+import { convertNumberToUnicodePower } from '../misc/converters.js';
 import { convertMarkdownToEditorState } from '../misc/converters';
 import { Modal } from './Modal.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
@@ -66,9 +66,9 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
 
     const currentModalLocaleFieldsUpdated = {
       ...currentModalLocaleFields,
-      gk_id: parseInt(document.getElementById("inputGK3").value),
-      l_indicate: parseFraction(document.getElementById("inputL3").value),
-      t_indicate: parseFraction(document.getElementById("inputT3").value),
+      gk_id: document.getElementById("inputGK3").value,
+      l_indicate: document.getElementById("inputL3").value,
+      t_indicate: document.getElementById("inputT3").value,
       symbol: convertMarkdownFromEditorState(cellEditorsStates.cellSymbolEditorState.value).split("/n").join(""),
       name: convertMarkdownFromEditorState(cellEditorsStates.cellNameEditorState.value).split("/n").join(""),
       unit: convertMarkdownFromEditorState(cellEditorsStates.cellUnitEditorState.value).split("/n").join(""),
@@ -94,8 +94,8 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
   const updateCell = async (currentModalFields, cellId) => {
     const gk_id = currentModalFields.gk_id;
     const gkLevel = gkColors.find(g => g.id === gk_id);
-    const G_indicate = parseFraction(gkLevel.g_indicate);
-    const K_indicate = parseFraction(gkLevel.k_indicate);
+    const G_indicate = gkLevel.g_indicate;
+    const K_indicate = gkLevel.k_indicate;
     const l_indicate = currentModalFields.l_indicate;
     const t_indicate = currentModalFields.t_indicate;
     const M_indicate = 0 - (G_indicate * -1 + K_indicate);
@@ -107,10 +107,10 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
       name: currentModalFields.name,
       symbol: currentModalFields.symbol,
       unit: currentModalFields.unit,
-      m_indicate: String(M_indicate),
-      l_indicate: String(L_indicate),
-      t_indicate: String(T_indicate),
-      i_indicate: String(I_indicate),
+      m_indicate: M_indicate,
+      l_indicate: L_indicate,
+      t_indicate: T_indicate,
+      i_indicate: I_indicate,
       gk_id,
       lt_id: selectedCell.lt_id,
     };
@@ -139,8 +139,8 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
   const createCell = async (currentModalFields) => {
     const gk_id = currentModalFields.gk_id;
     const gkLevel = gkColors.find(g => g.id === gk_id);
-    const G_indicate = parseFraction(gkLevel.g_indicate);
-    const K_indicate = parseFraction(gkLevel.k_indicate);
+    const G_indicate = gkLevel.g_indicate;
+    const K_indicate = gkLevel.k_indicate;
     const l_indicate = currentModalFields.l_indicate;
     const t_indicate = currentModalFields.t_indicate;
     const M_indicate = 0 - (G_indicate * -1 + K_indicate);
@@ -152,10 +152,10 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
       name: currentModalFields.name,
       symbol: currentModalFields.symbol,
       unit: currentModalFields.unit,
-      m_indicate: String(M_indicate),
-      l_indicate: String(L_indicate),
-      t_indicate: String(T_indicate),
-      i_indicate: String(I_indicate),
+      m_indicate: M_indicate,
+      l_indicate: L_indicate,
+      t_indicate: T_indicate,
+      i_indicate: I_indicate,
       gk_id,
       lt_id: selectedCell.lt_id,
       system_type_id: systemTypeState.currentSystemTypeId,
@@ -225,10 +225,10 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
     if (gk_id) {
       const gkLevel = gkColors.find(g => g.id === gk_id);
       const cellColor = gkLevel.color;
-      const G_indicate = parseFraction(gkLevel.g_indicate);
-      const K_indicate = parseFraction(gkLevel.k_indicate);
-      const l_indicate = parseFraction(document.getElementById("inputL3").value);
-      const t_indicate = parseFraction(document.getElementById("inputT3").value);
+      const G_indicate = gkLevel.g_indicate;
+      const K_indicate = gkLevel.k_indicate;
+      const l_indicate = document.getElementById("inputL3").value;
+      const t_indicate = document.getElementById("inputT3").value;
       const M_indicate = 0 - (G_indicate * -1 + K_indicate);
       const L_indicate = l_indicate - G_indicate * 3;
       const T_indicate = t_indicate - G_indicate * -2;
@@ -239,10 +239,10 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
           name: convertMarkdownFromEditorState(cellEditorsStates.cellNameEditorState.value),
           symbol: convertMarkdownFromEditorState(cellEditorsStates.cellSymbolEditorState.value),
           unit: convertMarkdownFromEditorState(cellEditorsStates.cellUnitEditorState.value),
-          m_indicate: String(M_indicate),
-          l_indicate: String(L_indicate),
-          t_indicate: String(T_indicate),
-          i_indicate: String(I_indicate),
+          m_indicate: M_indicate,
+          l_indicate: L_indicate,
+          t_indicate: T_indicate,
+          i_indicate: I_indicate,
         },
         cellColor,
       });
