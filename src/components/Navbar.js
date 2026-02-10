@@ -138,7 +138,7 @@ export default function Navbar({revStates, modalsVisibility}) {
                         <div className="nav-link active" aria-current="page" onClick={openTableViewsForm}>Представления</div>
                         <div className="nav-link active" aria-current="page" onClick={openLawsMenu}>Законы</div>
                         <div className="nav-link active" aria-current="page" onClick={openLawsGroupsForm}>Группы законов</div>
-                        <div className="nav-link active" aria-current="page" onClick={openGKColorsEditForm}>Цвета ячеек</div>
+                        <div className="nav-link active" aria-current="page" onClick={openGKColorsEditForm}>Системные кластеры</div>
                         </>) : (null)}
                     </div>
                 </div>
