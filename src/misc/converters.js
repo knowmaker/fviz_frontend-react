@@ -25,16 +25,16 @@ export function formatIndicateForSup(value) {
 export function convertToMLTI(M, L, T, I) {
 
   let MLTIHTMLString = "";
-  if (M !== 0) {
+  if (M != 0) {
     MLTIHTMLString += `M<sup>${formatIndicateForSup(M)}</sup>`;
   }
-  if (L !== 0) {
+  if (L != 0) {
     MLTIHTMLString += `L<sup>${formatIndicateForSup(L)}</sup>`;
   }
-  if (T !== 0) {
+  if (T != 0) {
     MLTIHTMLString += `T<sup>${formatIndicateForSup(T)}</sup>`;
   }
-  if (I !== 0) {
+  if (I != 0) {
     MLTIHTMLString += `I<sup>${formatIndicateForSup(I)}</sup>`;
   }
 
