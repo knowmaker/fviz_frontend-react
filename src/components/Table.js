@@ -617,10 +617,10 @@ export function Cell({cellFullData, cellRightClick, selectedCells, revStates, se
     const cellContent_name = cellData.name;
     const cellContent_symbol = cellData.symbol;
     const cellContent_unit = cellData.unit;
-    const m = cellData.m_indicate;
-    const l = cellData.l_indicate;
-    const t = cellData.t_indicate;
-    const i = cellData.i_indicate;
+    const m = cellData.m_indicate_auto;
+    const l = cellData.l_indicate_auto;
+    const t = cellData.t_indicate_auto;
+    const i = cellData.i_indicate_auto;
     const cellContent_mlti = convertToMLTI(m, l, t, i);
 
 
@@ -697,22 +697,22 @@ function findFourthCell(lawCells) {
 }
 
 export function checkLaw(cells) {
-  const m0 = cells[0].m_indicate;
-  const l0 = cells[0].l_indicate;
-  const t0 = cells[0].t_indicate;
-  const i0 = cells[0].i_indicate;
-  const m1 = cells[1].m_indicate;
-  const l1 = cells[1].l_indicate;
-  const t1 = cells[1].t_indicate;
-  const i1 = cells[1].i_indicate;
-  const m2 = cells[2].m_indicate;
-  const l2 = cells[2].l_indicate;
-  const t2 = cells[2].t_indicate;
-  const i2 = cells[2].i_indicate;
-  const m3 = cells[3].m_indicate;
-  const l3 = cells[3].l_indicate;
-  const t3 = cells[3].t_indicate;
-  const i3 = cells[3].i_indicate;
+  const m0 = cells[0].m_indicate_auto;
+  const l0 = cells[0].l_indicate_auto;
+  const t0 = cells[0].t_indicate_auto;
+  const i0 = cells[0].i_indicate_auto;
+  const m1 = cells[1].m_indicate_auto;
+  const l1 = cells[1].l_indicate_auto;
+  const t1 = cells[1].t_indicate_auto;
+  const i1 = cells[1].i_indicate_auto;
+  const m2 = cells[2].m_indicate_auto;
+  const l2 = cells[2].l_indicate_auto;
+  const t2 = cells[2].t_indicate_auto;
+  const i2 = cells[2].i_indicate_auto;
+  const m3 = cells[3].m_indicate_auto;
+  const l3 = cells[3].l_indicate_auto;
+  const t3 = cells[3].t_indicate_auto;
+  const i3 = cells[3].i_indicate_auto;
 
   const firstThirdCellsMLTI = {
     M: m0 + m2,
