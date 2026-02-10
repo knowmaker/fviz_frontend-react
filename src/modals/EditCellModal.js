@@ -92,13 +92,13 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
   };
 
   const updateCell = async (currentModalFields, cellId) => {
-    const gk_id = currentModalFields.gk_id;
+    const gk_id = parseInt(currentModalFields.gk_id, 10);
     const gkLevel = gkColors.find(g => g.id === gk_id);
     const G_indicate = gkLevel.g_indicate;
     const K_indicate = gkLevel.k_indicate;
     const l_indicate = currentModalFields.l_indicate;
     const t_indicate = currentModalFields.t_indicate;
-    const M_indicate = 0 - (G_indicate * -1 + K_indicate);
+    const M_indicate = 0 - (G_indicate * -1 - K_indicate * -1);
     const L_indicate = l_indicate - G_indicate * 3;
     const T_indicate = t_indicate - G_indicate * -2;
     const I_indicate = 0 - K_indicate * -1;
@@ -137,13 +137,13 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
   };
 
   const createCell = async (currentModalFields) => {
-    const gk_id = currentModalFields.gk_id;
+    const gk_id = parseInt(currentModalFields.gk_id, 10);
     const gkLevel = gkColors.find(g => g.id === gk_id);
     const G_indicate = gkLevel.g_indicate;
     const K_indicate = gkLevel.k_indicate;
     const l_indicate = currentModalFields.l_indicate;
     const t_indicate = currentModalFields.t_indicate;
-    const M_indicate = 0 - (G_indicate * -1 + K_indicate);
+    const M_indicate = 0 - (G_indicate * -1 - K_indicate * -1);
     const L_indicate = l_indicate - G_indicate * 3;
     const T_indicate = t_indicate - G_indicate * -2;
     const I_indicate = 0 - K_indicate * -1;
@@ -221,7 +221,7 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
   }, [cellEditorsStates, GKoption, selectedCell]);
 
   const updatePreviewCell = () => {
-    const gk_id = parseInt(document.getElementById("inputGK3").value);
+    const gk_id = parseInt(document.getElementById("inputGK3").value, 10);
     if (gk_id) {
       const gkLevel = gkColors.find(g => g.id === gk_id);
       const cellColor = gkLevel.color;
@@ -229,7 +229,7 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
       const K_indicate = gkLevel.k_indicate;
       const l_indicate = document.getElementById("inputL3").value;
       const t_indicate = document.getElementById("inputT3").value;
-      const M_indicate = 0 - (G_indicate * -1 + K_indicate);
+      const M_indicate = 0 - (G_indicate * -1 - K_indicate * -1);
       const L_indicate = l_indicate - G_indicate * 3;
       const T_indicate = t_indicate - G_indicate * -2;
       const I_indicate = 0 - K_indicate * -1;

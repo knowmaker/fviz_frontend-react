@@ -327,8 +327,8 @@ export default function Home() {
         convertMarkdownToEditorState(setCellNameEditor, cellData.name);
         convertMarkdownToEditorState(setCellSymbolEditor, cellData.symbol);
         convertMarkdownToEditorState(setCellUnitEditor, cellData.unit);
-        document.getElementById('inputL3').value = cellData.l_indicate;
-        document.getElementById('inputT3').value = cellData.t_indicate;
+        document.getElementById('inputL3').value = selectedCell.l_indicate;
+        document.getElementById('inputT3').value = selectedCell.t_indicate;
         document.getElementById('inputGK3').value = cellData.gk_id;
       } else {
         convertMarkdownToEditorState(setCellNameEditor, '');
