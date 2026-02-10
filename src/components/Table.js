@@ -76,7 +76,8 @@ function CellOptions({selectedCellState ,gkColors, revStates,modalsVisibility}) 
     let cells = cellAlternatives.filter(cellData => cellData.id !== selectedCell.id).map(cellData => {
 
       const cellFullId = cellData.id;
-      const cellColor = `${gkColors.find((setting) => setting.id === cellData.gk_id).color}`;
+      const cellGKLayer = gkColors.find((setting) => setting.id === cellData.gk_id);
+      const cellColor = cellGKLayer ? cellGKLayer.color : "#CCCCCC";
 
 
       return (
@@ -415,7 +416,7 @@ function Row({rowId, fullTableData, selectedCellState, hoveredCellState, selecte
       cellData = { ...cellData, ...cellIndicates };
       if (cellData.gk_id) {
         const cellGKLayer = fullTableData.Colors.find((setting) => setting.id === cellData.gk_id);
-        const cellNormalColor = cellGKLayer.color;
+        const cellNormalColor = cellGKLayer ? cellGKLayer.color : "#CCCCCC";
         cellColor = cellNormalColor;
 
         hoverData.GKLayer = cellGKLayer;
