@@ -5,7 +5,7 @@ import { Cell } from '../components/Table.js';
 import { isResponseSuccessful } from '../misc/api.js';
 import { convertMarkdownFromEditorState } from '../pages/Home.js';
 import { showMessage } from '../misc/message.js';
-import { convertNumberToUnicodePower } from '../misc/converters.js';
+import { formatIndicateForSup } from '../misc/converters.js';
 import { convertMarkdownToEditorState } from '../misc/converters';
 import { Modal } from './Modal.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
@@ -201,7 +201,7 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
   };
 
   const cellList = gkColors.map(gkLevel => {
-    const shownText = `${gkLevel.name} G${convertNumberToUnicodePower(gkLevel.g_indicate)}K<sup>${convertNumberToUnicodePower(gkLevel.k_indicate)}</sup>`;
+    const shownText = `${gkLevel.name} G<sup>${formatIndicateForSup(gkLevel.g_indicate)}</sup>K<sup>${formatIndicateForSup(gkLevel.k_indicate)}</sup>`;
     return (
       <option key={gkLevel.id} value={gkLevel.id} dangerouslySetInnerHTML={{ __html: shownText }} />
     );

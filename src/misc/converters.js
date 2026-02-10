@@ -12,20 +12,30 @@ export function convertMarkdownToEditorState(stateFunction, markdown) {
 
 }
 
+
+export function formatIndicateForSup(value) {
+  const numberValue = value;
+  const doubledValue = numberValue * 2;
+  if (doubledValue % 2 === 0) {
+    return `${doubledValue / 2}`;
+  }
+  return `${doubledValue}/2`;
+}
+
 export function convertToMLTI(M, L, T, I) {
 
   let MLTIHTMLString = "";
   if (M !== 0) {
-    MLTIHTMLString += `M<sup>${M}</sup>`;
+    MLTIHTMLString += `M<sup>${formatIndicateForSup(M)}</sup>`;
   }
   if (L !== 0) {
-    MLTIHTMLString += `L<sup>${L}</sup>`;
+    MLTIHTMLString += `L<sup>${formatIndicateForSup(L)}</sup>`;
   }
   if (T !== 0) {
-    MLTIHTMLString += `T<sup>${T}</sup>`;
+    MLTIHTMLString += `T<sup>${formatIndicateForSup(T)}</sup>`;
   }
   if (I !== 0) {
-    MLTIHTMLString += `I<sup>${I}</sup>`;
+    MLTIHTMLString += `I<sup>${formatIndicateForSup(I)}</sup>`;
   }
 
   if (M === 0 && L === 0 && T === 0 && I === 0) {
@@ -44,12 +54,13 @@ export function convertToMLTI(M, L, T, I) {
 }
 
 
+
 export function convertNumberToUnicodePower(number) {
   const numberString = number.toString()
   const unicodeString = numberString.replace("0", "⁰")
   .replace("1", "¹").replace("2", "²").replace("3", "³")
   .replace("4", "⁴").replace("5", "⁵").replace("6", "⁶")
   .replace("7", "⁷").replace("8", "⁸").replace("9", "⁹")
-  .replace("-", "⁻")
+  .replace("-", "⁻").replace("/", "⁄")
   return unicodeString
 }

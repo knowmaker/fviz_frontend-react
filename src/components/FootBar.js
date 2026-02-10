@@ -3,6 +3,7 @@ import { UserProfile, TableContext, SystemTypeContext } from '../misc/contexts.j
 import { showMessage } from '../misc/message.js';
 import setStateFromGetAPI, { patchDataToAPI, isResponseSuccessful } from '../misc/api.js';
 import { Button } from '../components/ButtonWithLoad.js';
+import { formatIndicateForSup } from '../misc/converters.js';
 
 const API_BASE = () => process.env.REACT_APP_API_LINK;
 
@@ -24,7 +25,7 @@ export default function Footbar({ hoveredCell, selectedLawState, getImage, table
   if (hoveredCell) {
 
     cellLT = hoveredCell.l_indicate !== undefined ? `L<sup>${hoveredCell.l_indicate}</sup>T<sup>${hoveredCell.t_indicate}</sup>` : "-"
-    cellGK = hoveredCell.GKLayer ? `G<sup>${hoveredCell.GKLayer.g_indicate}</sup>K<sup>${hoveredCell.GKLayer.k_indicate}</sup>` : "-"
+    cellGK = hoveredCell.GKLayer ? `G<sup>${formatIndicateForSup(hoveredCell.GKLayer.g_indicate)}</sup>K<sup>${formatIndicateForSup(hoveredCell.GKLayer.k_indicate)}</sup>` : "-"
   }
 
   const removeCurrentLaw = () => {

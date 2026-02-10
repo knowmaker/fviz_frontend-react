@@ -6,7 +6,7 @@ import { isResponseSuccessful } from '../misc/api.js';
 import { RichTextEditor } from '../components/RichTextEditor.js';
 import { convertMarkdownFromEditorState } from '../pages/Home.js';
 import { showMessage } from '../misc/message.js';
-import { convertMarkdownToEditorState } from '../misc/converters.js';
+import { convertMarkdownToEditorState, formatIndicateForSup } from '../misc/converters.js';
 import { Modal } from './Modal.js';
 import { Button } from '../components/ButtonWithLoad.js';
 
@@ -91,7 +91,7 @@ export function GKLayersModal({ modalsVisibility, GKLayersState }) {
             </>
           ) : null}
           <td dangerouslySetInnerHTML={{ __html: GKLayer.name }}></td>
-          <td>G<sup>{GKLayer.g_indicate}</sup>K<sup>{GKLayer.k_indicate}</sup></td>
+          <td>G<sup>{formatIndicateForSup(GKLayer.g_indicate)}</sup>K<sup>{formatIndicateForSup(GKLayer.k_indicate)}</sup></td>
           <td><input type="color" className="form-control form-control-color disabled" value={GKLayer.color} readOnly onClick={(e) => { e.preventDefault(); }} /></td>
           {isAdmin ? (
             <>
