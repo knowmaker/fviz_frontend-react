@@ -57,6 +57,10 @@ function CellOptions({selectedCellState ,gkColors, revStates,modalsVisibility}) 
   const selectedCell = selectedCellState.selectedCell
   const setSelectedCell = selectedCellState.setSelectedCell
   const systemTypeState = useContext(SystemTypeContext);
+  const currentSystemType = systemTypeState.systemTypes.find(
+    (systemType) => systemType.id === systemTypeState.currentSystemTypeId
+  );
+  const orderliness = currentSystemType ? currentSystemType.orderliness : "";
 
   const [cellAlternatives, setCellAlternatives] = useState(null);
 
@@ -87,10 +91,9 @@ function CellOptions({selectedCellState ,gkColors, revStates,modalsVisibility}) 
         selectedCells={cellAlternatives.concat(emptyCellData)}
         revStates={revStates}
         setSelectedCell={setSelectedCell}
+        orderliness={orderliness}
         />
       )
-
-
     })
 
 
@@ -103,6 +106,7 @@ function CellOptions({selectedCellState ,gkColors, revStates,modalsVisibility}) 
         revStates={revStates}
         setSelectedCell={setSelectedCell}
         className="fancy-empty-cell"
+        orderliness={orderliness}
         />
       )
     }
@@ -257,8 +261,11 @@ const Table = forwardRef(({ gkColors, selectedCellState, hoveredCellState, selec
 
 
   const tableState = useContext(TableContext)
+  const systemTypeState = useContext(SystemTypeContext)
   const tableData = tableState.tableData
   const fullTableData = { tableData: tableData, Colors: gkColors};
+  const currentSystemType = (systemTypeState?.systemTypes || []).find((systemType) => systemType.id === systemTypeState?.currentSystemTypeId);
+  const orderliness = currentSystemType?.orderliness;
 
   const [emptyCells, setEmptyCells] = useState([]);
 
@@ -374,6 +381,7 @@ const Table = forwardRef(({ gkColors, selectedCellState, hoveredCellState, selec
       lawsState={lawsState}
       lawEditorsStates={lawEditorsStates}
       showModeState={showModeState}
+      orderliness={orderliness}
       />
     });
       return (
@@ -396,7 +404,7 @@ const Table = forwardRef(({ gkColors, selectedCellState, hoveredCellState, selec
 
 })
 
-function Row({rowId, fullTableData, selectedCellState, hoveredCellState, selectedLawState, modalsVisibility, emptyCellsData,lawsState,lawEditorsStates,showModeState}) {
+function Row({rowId, fullTableData, selectedCellState, hoveredCellState, selectedLawState, modalsVisibility, emptyCellsData,lawsState,lawEditorsStates,showModeState,orderliness}) {
 
   const isEven = (rowId % 2 === 0 ? 0 : 1)
   const setSelectedCell = selectedCellState.setSelectedCell
@@ -444,6 +452,7 @@ function Row({rowId, fullTableData, selectedCellState, hoveredCellState, selecte
             lawsState={lawsState}
             lawEditorsStates={lawEditorsStates}
             showModeState={showModeState}
+            orderliness={orderliness}
             />);
   });
 
@@ -464,7 +473,7 @@ document.addEventListener( 'mousedown', () => drag = false);
 
 document.addEventListener( 'mousemove', () => drag = true);
 
-export function Cell({cellFullData, cellRightClick, selectedCells, revStates, setSelectedCell, selectedLawState, modalsVisibility,hoverData,isEmpty = false, className = "",lawsState,lawEditorsStates,showModeState}) {
+export function Cell({cellFullData, cellRightClick, selectedCells, revStates, setSelectedCell, selectedLawState, modalsVisibility,hoverData,isEmpty = false, className = "",lawsState,lawEditorsStates,showModeState,orderliness}) {
 
   const cellFullId = cellFullData.cellFullId
   const cellData = cellFullData.cellData
@@ -622,7 +631,7 @@ export function Cell({cellFullData, cellRightClick, selectedCells, revStates, se
     const l = cellData.l_indicate_auto;
     const t = cellData.t_indicate_auto;
     const i = cellData.i_indicate_auto;
-    const cellContent_mlti = convertToMLTI(m, l, t, i);
+    const cellContent_mlti = convertToMLTI(m, l, t, i, orderliness);
 
 
 

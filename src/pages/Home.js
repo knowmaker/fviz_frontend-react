@@ -351,6 +351,10 @@ export default function Home() {
 
     setSelectedLaw({ name: null, cells: [], law_group_id: null });
     setSelectedCell(null);
+    setTableData([]);
+    setGKLayers([]);
+    setLaws(null);
+    setLawsGroups([]);
     setCurrentSystemTypeId(systemTypeId);
   };
 

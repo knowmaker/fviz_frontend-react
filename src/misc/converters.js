@@ -22,40 +22,37 @@ export function formatIndicateForSup(value) {
   return `${doubledValue}/2`;
 }
 
-export function convertToMLTI(M, L, T, I) {
+export function convertToMLTI(M, L, T, I, orderliness) {
+
 
   const m = Number(M);
   const l = Number(L);
   const t = Number(T);
   const i = Number(I);
 
-  let MLTIHTMLString = "";
-  if (m !== 0) {
-    MLTIHTMLString += `M<sup>${formatIndicateForSup(m)}</sup>`;
-  }
-  if (l !== 0) {
-    MLTIHTMLString += `L<sup>${formatIndicateForSup(l)}</sup>`;
-  }
-  if (t !== 0) {
-    MLTIHTMLString += `T<sup>${formatIndicateForSup(t)}</sup>`;
-  }
-  if (i !== 0) {
-    MLTIHTMLString += `I<sup>${formatIndicateForSup(i)}</sup>`;
+  const values = { M: m, L: l, T: t, I: i };
+
+  let mltiHtmlString = "";
+  const order = typeof orderliness === "string" ? orderliness.split("") : [];
+  for (const letter of order) {
+    const value = values[letter];
+    if (value !== 0) {
+      mltiHtmlString += `${letter}<sup>${formatIndicateForSup(value)}</sup>`;
+    }
   }
 
   if (m === 0 && l === 0 && t === 0 && i === 0) {
-    MLTIHTMLString = 'L<sup>0</sup>T<sup>0</sup>';
-  }
+    mltiHtmlString = 'L<sup>0</sup>T<sup>0</sup>';
 
+  }
   if (m === undefined || l === undefined || t === undefined || i === undefined) {
-    MLTIHTMLString = ""
+    return "";
   }
-
   if (isNaN(m) || isNaN(l) || isNaN(t) || isNaN(i)) {
-    MLTIHTMLString = ""
+    return "";
   }
 
-  return MLTIHTMLString;
+  return mltiHtmlString;
 }
 
 

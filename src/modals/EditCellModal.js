@@ -17,6 +17,10 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
   const tableState = useContext(TableContext);
   const userInfoState = useContext(UserProfile);
   const systemTypeState = useContext(SystemTypeContext);
+  const currentSystemType = systemTypeState.systemTypes.find(
+    (systemType) => systemType.id === systemTypeState.currentSystemTypeId
+  );
+  const orderliness = currentSystemType ? currentSystemType.orderliness : "";
 
   const headers = {
     Authorization: `Bearer ${userInfoState.userToken}`,
@@ -262,7 +266,7 @@ export function EditCellModal({ modalVisibility, selectedCell, cellEditorsStates
             <div className="row">
               <details>
                 <summary>Превью</summary>
-                <Cell cellFullData={previewCell} />
+                <Cell cellFullData={previewCell} orderliness={orderliness} />
               </details>
             </div>
           </>
