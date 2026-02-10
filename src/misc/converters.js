@@ -14,7 +14,7 @@ export function convertMarkdownToEditorState(stateFunction, markdown) {
 
 
 export function formatIndicateForSup(value) {
-  const numberValue = value;
+  const numberValue = Number(value);
   const doubledValue = numberValue * 2;
   if (doubledValue % 2 === 0) {
     return `${doubledValue / 2}`;
@@ -24,29 +24,34 @@ export function formatIndicateForSup(value) {
 
 export function convertToMLTI(M, L, T, I) {
 
+  const m = Number(M);
+  const l = Number(L);
+  const t = Number(T);
+  const i = Number(I);
+
   let MLTIHTMLString = "";
-  if (M != 0) {
-    MLTIHTMLString += `M<sup>${formatIndicateForSup(M)}</sup>`;
+  if (m !== 0) {
+    MLTIHTMLString += `M<sup>${formatIndicateForSup(m)}</sup>`;
   }
-  if (L != 0) {
-    MLTIHTMLString += `L<sup>${formatIndicateForSup(L)}</sup>`;
+  if (l !== 0) {
+    MLTIHTMLString += `L<sup>${formatIndicateForSup(l)}</sup>`;
   }
-  if (T != 0) {
-    MLTIHTMLString += `T<sup>${formatIndicateForSup(T)}</sup>`;
+  if (t !== 0) {
+    MLTIHTMLString += `T<sup>${formatIndicateForSup(t)}</sup>`;
   }
-  if (I != 0) {
-    MLTIHTMLString += `I<sup>${formatIndicateForSup(I)}</sup>`;
+  if (i !== 0) {
+    MLTIHTMLString += `I<sup>${formatIndicateForSup(i)}</sup>`;
   }
 
-  if (M == 0 && L == 0 && T == 0 && I == 0) {
+  if (m === 0 && l === 0 && t === 0 && i === 0) {
     MLTIHTMLString = 'L<sup>0</sup>T<sup>0</sup>';
   }
 
-  if (M === undefined || L === undefined || T === undefined || I === undefined) {
+  if (m === undefined || l === undefined || t === undefined || i === undefined) {
     MLTIHTMLString = ""
   }
 
-  if (isNaN(M) || isNaN(L) || isNaN(T) || isNaN(I)) {
+  if (isNaN(m) || isNaN(l) || isNaN(t) || isNaN(i)) {
     MLTIHTMLString = ""
   }
 
