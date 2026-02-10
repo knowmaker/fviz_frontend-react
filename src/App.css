@@ -134,28 +134,33 @@ sup, sub {
 
 .system-types-panel {
   position: fixed;
-  top: 68px;
-  left: 2px;
-  width: 120px;
-  max-height: calc(100% - 140px);
-  padding: 10px;
-  background-color: #fff;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 160px;
+  max-width: min(560px, 90vw);
+  max-height: 40vh;
+  padding: 8px 16px 12px;
+  background-color: var(--bs-tertiary-bg, var(--bs-body-bg, #f8f9fa));
   border: 1px solid #ccc;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 2;
+  border-top: none;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+  z-index: 1031;
   overflow: auto;
-}
-
-.system-types-title {
-  margin-bottom: 8px;
-  font-weight: bold;
-  font-size: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 15% 100%);
 }
 
 .system-type-button {
-  width: 100%;
-  margin-bottom: 6px;
-  text-align: left;
+  width: auto;
+  margin-bottom: 0;
+  text-align: center;
+  white-space: nowrap;
+  border-radius: 999px;
 }
 
 .data-window-left {
@@ -237,8 +242,11 @@ sup, sub {
 
 @media (max-width:992px) {
   .system-types-panel {
-    width: 160px;
-    max-height: calc(100% - 180px);
+    top: 57px;
+    min-width: 160px;
+    max-width: calc(100vw - 24px);
+    padding: 8px 12px 12px;
+    clip-path: polygon(0 0, 100% 0, 90% 100%, 10% 100%);
   }
   .footbar-button {
     margin: 5px;

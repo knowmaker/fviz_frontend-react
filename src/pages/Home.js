@@ -362,7 +362,6 @@ export default function Home() {
         <TableContext.Provider value={tableState}>
           <SystemTypeContext.Provider value={systemTypeState}>
             <div className="system-types-panel">
-              <div className="system-types-title">Тип системы</div>
               {(systemTypes || []).map((systemType) => {
                 const isActive = systemType.id === currentSystemTypeId;
 
