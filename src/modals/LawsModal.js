@@ -87,7 +87,6 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
       return;
     }
 
-    const selectedLawCellId = selectedLawState.selectedLaw.cells.map(cell => cell.id);
     const updatePayload = {
       name: convertMarkdownFromEditorState(lawEditorsStates.lawNameEditorState.value),
       law_group_id: document.getElementById("inputLawGroup3").value !== "-1" ? document.getElementById("inputLawGroup3").value : null,
@@ -200,4 +199,3 @@ export function EditLawsModal({ modalsVisibility, lawsState, selectedLawState, l
     </Modal>
   );
 }
-
