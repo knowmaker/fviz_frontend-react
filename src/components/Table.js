@@ -417,7 +417,7 @@ function Row({rowId, fullTableData, selectedCellState, hoveredCellState, selecte
     let cellData = fullTableData.tableData.find(cell => cell.lt_id === cellFullId);
     const emptyCell = emptyCellsData.find(cell => cell.id === cellFullId);
     let cellIndicates = { t_indicate: emptyCell?.t_indicate, l_indicate: emptyCell?.l_indicate };
-    let hoverData = emptyCell;
+    let hoverData;
     let cellColor;
     let borderColor;
     if (cellData) {
@@ -427,7 +427,7 @@ function Row({rowId, fullTableData, selectedCellState, hoveredCellState, selecte
         const cellNormalColor = cellGKLayer ? cellGKLayer.color : "#CCCCCC";
         cellColor = cellNormalColor;
 
-        hoverData.GKLayer = cellGKLayer;
+        hoverData = { ...cellData, GKLayer: cellGKLayer };
 
         if (selectedCellState.selectedCell) {
           borderColor = cellData.id === selectedCellState.selectedCell.id ? "orange" : "";
@@ -435,9 +435,12 @@ function Row({rowId, fullTableData, selectedCellState, hoveredCellState, selecte
         if (selectedLawState.selectedLaw) {
           borderColor = selectedLawState.selectedLaw.cells.find(lawCell => lawCell.id === cellData.id) ? "red" : borderColor;
         }
+      } else {
+        hoverData = { ...cellData };
       }
     } else {
       cellData = emptyCell ? { ...emptyCell, id: -1, lt_id: emptyCell.id } : { id: -1, lt_id: cellFullId };
+      hoverData = emptyCell ? { ...emptyCell } : { id: -1, lt_id: cellFullId, ...cellIndicates };
     }
 
     return (<Cell
