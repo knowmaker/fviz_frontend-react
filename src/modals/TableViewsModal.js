@@ -46,10 +46,15 @@ export function TableViewsModal({ modalsVisibility, tableViews, setTableViews, t
     }
     const tableViewData = tableViewDataResponse.data;
 
-    tableViewState.setTableView({ id: tableViewData.id, title: tableViewData.title });
-    tableState.setTableData(tableViewData.quantities);
+    const representData = tableViewData?.represent ?? {};
+    const nextTableViewId = representData?.id ?? tableView?.id ?? null;
+    const nextTableViewTitle = representData?.title ?? tableView?.title ?? "";
+    const nextQuantities = tableViewData?.quantities ?? [];
 
-    convertMarkdownToEditorState(setTableViewEditorState, tableViewData.title);
+    tableViewState.setTableView({ id: nextTableViewId, title: nextTableViewTitle });
+    tableState.setTableData(nextQuantities);
+
+    convertMarkdownToEditorState(setTableViewEditorState, nextTableViewTitle);
 
   };
 
