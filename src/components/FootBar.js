@@ -84,7 +84,9 @@ export default function Footbar({ hoveredCell, selectedLawState, getImage, table
                 <div className="nameinput footbar-input" id="outName">
                   <div className="v-align " dangerouslySetInnerHTML={{ __html: tableViewState.tableView.title }}></div>
                 </div>
-                <Button className="btn-sm btn-primary btn footbar-button" aria-current="page" onClick={(e) => updateTableView(e)}>Сохранить представление</Button>
+                {tableViewState.tableView.id !== 0 ? (
+                  <Button className="btn-sm btn-primary btn footbar-button" aria-current="page" onClick={(e) => updateTableView(e)}>Сохранить представление</Button>
+                ) : null}
               </>
             ) : null}
             <div className="btn-sm btn-primary btn footbar-button" aria-current="page" onClick={showGKLayersImageModal}>Показать уровни GK</div>
