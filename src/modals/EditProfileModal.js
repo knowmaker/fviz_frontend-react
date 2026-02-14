@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import { patchDataToAPI, deleteDataFromAPI } from '../misc/api.js';
-import { UserProfile } from '../misc/contexts.js';
 import { isResponseSuccessful } from '../misc/api.js';
 import { showPassword } from '../pages/Home.js';
 import { showMessage } from '../misc/message.js';
@@ -45,7 +44,6 @@ export function EditProfileModal({ modalsVisibility, userInfoState }) {
     document.getElementById("InputEmail2").value = "";
     document.getElementById("InputPassword2").value = "";
     document.getElementById("InputEmail1").value = "";
-    document.getElementById("InputPassword1").value = "";
 
     setStateFromGetAPI(userInfoState.setUserProfile, `${API_BASE()}/users/me`, undefined, headers)
 
@@ -56,7 +54,7 @@ export function EditProfileModal({ modalsVisibility, userInfoState }) {
       return;
     }
 
-    const password = document.getElementById("InputPassword3")?.value || "";
+    const password = document.getElementById("InputDeletePassword3")?.value || "";
     const deleteUserResponse = await deleteDataFromAPI(`${API_BASE()}/users/me`, { password }, headers);
     if (!isResponseSuccessful(deleteUserResponse)) {
       showMessage(deleteUserResponse.data?.detail || deleteUserResponse.data?.error, "error");
@@ -69,6 +67,8 @@ export function EditProfileModal({ modalsVisibility, userInfoState }) {
 
   const InputPassword = useRef();
   const InputPasswordEye = useRef();
+  const InputDeletePassword = useRef();
+  const InputDeletePasswordEye = useRef();
 
   return (
     <Modal
@@ -93,9 +93,24 @@ export function EditProfileModal({ modalsVisibility, userInfoState }) {
         <input type="text" className="form-control" id="InputFirstName3" />
         <label htmlFor="InputPatronymic3" className="form-label">Отчество</label>
         <input type="text" className="form-control" id="InputPatronymic3" />
+
+        <details className="mt-3">
+          <summary className="btn btn-outline-danger w-100">Удаление аккаунта</summary>
+          <div className="mt-3">
+            <label htmlFor="InputDeletePassword3" className="form-label">Пароль для удаления</label>
+            <div className="input-group" id="show_hide_password_delete">
+              <input type="password" className="form-control" id="InputDeletePassword3" ref={InputDeletePassword} />
+              <div className="input-group-text">
+                <span className='showPassword' onClick={() => { showPassword(InputDeletePassword, InputDeletePasswordEye); }}>👁<i className="fa fa-eye-slash" aria-hidden="true" ref={InputDeletePasswordEye} /></span>
+              </div>
+            </div>
+            <div className="modal-footer2">
+              <Button type="button" className="btn btn-danger me-1" onClick={(e) => deleteUser(e)}>Удалить аккаунт</Button>
+            </div>
+          </div>
+        </details>
       </div>
       <div className="modal-footer2">
-        <Button type="button" className="btn btn-danger me-1" onClick={(e) => deleteUser(e)}>Удалить аккаунт</Button>
         <Button type="button" className="btn btn-success" onClick={(e) => editProfile(e)}>Сохранить</Button>
       </div>
 

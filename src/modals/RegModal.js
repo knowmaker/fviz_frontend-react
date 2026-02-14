@@ -13,7 +13,6 @@ export function RegistrationModal({ modalVisibility, setUserToken }) {
   useEffect(() => {
     if (modalVisibility.isVisible === false) {
       document.getElementById("InputEmail1").value = "";
-      document.getElementById("InputPassword1").value = "";
       document.getElementById("InputEmail2").value = "";
       document.getElementById("InputPassword2").value = "";
       document.getElementById("InputEmail5").value = "";
@@ -23,7 +22,6 @@ export function RegistrationModal({ modalVisibility, setUserToken }) {
   const register = async () => {
 
     const email = document.getElementById("InputEmail1").value;
-    const password = document.getElementById("InputPassword1").value;
 
     const registerResponseData = await postDataToAPI(`${API_BASE()}/users/register`, { email });
     if (!isResponseSuccessful(registerResponseData)) {
@@ -71,7 +69,6 @@ export function RegistrationModal({ modalVisibility, setUserToken }) {
 
   const clearAllFields = () => {
     document.getElementById("InputEmail1").value = "";
-    document.getElementById("InputPassword1").value = "";
     document.getElementById("InputEmail2").value = "";
     document.getElementById("InputPassword2").value = "";
     document.getElementById("InputEmail5").value = "";
@@ -79,9 +76,6 @@ export function RegistrationModal({ modalVisibility, setUserToken }) {
 
   const InputRegisterPassword = useRef();
   const InputRegisterPasswordEye = useRef();
-
-  const InputLoginPassword = useRef();
-  const InputLoginPasswordEye = useRef();
 
   return (
     <Modal
@@ -123,13 +117,6 @@ export function RegistrationModal({ modalVisibility, setUserToken }) {
             <div className="modal-content2">
               <label htmlFor="InputEmail1" className="form-label">Почта</label>
               <input type="email" className="form-control" id="InputEmail1" aria-describedby="emailHelp" placeholder="name@example.com" />
-              <label htmlFor="InputPassword1" className="form-label">Пароль</label>
-              <div className="input-group" id="show_hide_password">
-                <input type="password" className="form-control" id="InputPassword1" ref={InputLoginPassword} />
-                <div className="input-group-text">
-                  <span className='showPassword' onClick={() => { showPassword(InputLoginPassword, InputLoginPasswordEye); }}>👁<i className="fa fa-eye-slash" aria-hidden="true" ref={InputLoginPasswordEye} /></span>
-                </div>
-              </div>
             </div>
 
             <div className="modal-footer2">
