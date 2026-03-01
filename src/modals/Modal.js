@@ -20,6 +20,7 @@ export function Modal({ children, modalVisibility, title, hasBackground = false,
   return (
     <Draggable
       handle=".modal-title2"
+      cancel=".btn-close"
       defaultPosition={{ x: modalStartPos, y: -600 }}
       bounds="html"
       nodeRef={nodeRef}
