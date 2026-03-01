@@ -4,6 +4,7 @@ import { showMessage } from '../misc/message.js';
 import setStateFromGetAPI, { patchDataToAPI, isResponseSuccessful } from '../misc/api.js';
 import { Button } from '../components/ButtonWithLoad.js';
 import { formatIndicateForSup } from '../misc/converters.js';
+import { IconLayersSubtract } from '@tabler/icons-react';
 
 const API_BASE = () => process.env.REACT_APP_API_LINK;
 
@@ -66,7 +67,14 @@ export default function Footbar({ hoveredCell, selectedLawState, getImage, table
   }
 
   return (
-    <nav className="navbar navbar-expand-lg fixed-bottom bg-body-tertiary">
+    <>
+      <div className="gk-levels-floating">
+        <div className="btn-sm btn-primary btn gk-layers-button" aria-current="page" onClick={showGKLayersImageModal} title="Уровни GK" aria-label="Уровни GK">
+          <IconLayersSubtract size={44} stroke={1.8} aria-hidden="true" className="gk-layers-button-icon" />
+          <span className="gk-layers-button-text">GK</span>
+        </div>
+      </div>
+      <nav className="navbar navbar-expand-lg fixed-bottom bg-body-tertiary">
       <div className="container-fluid">
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#footerSupportedContent" aria-controls="footerSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span className="navbar-toggler-icon"></span>
@@ -89,7 +97,6 @@ export default function Footbar({ hoveredCell, selectedLawState, getImage, table
                 ) : null}
               </>
             ) : null}
-            <div className="btn-sm btn-primary btn footbar-button" aria-current="page" onClick={showGKLayersImageModal}>Показать уровни GK</div>
             <Button className="btn-sm btn-primary btn footbar-button" aria-current="page" onClick={(e) => downloadScreenshot(e)}>Скачать скриншот</Button>
             <label className="form-check-label">Режим законов</label>
             <div className="form-check form-switch">
@@ -107,6 +114,8 @@ export default function Footbar({ hoveredCell, selectedLawState, getImage, table
         ) : null}
       </div>
     </nav>
+    </>
   );
 }
+
 

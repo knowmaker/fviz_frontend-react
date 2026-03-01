@@ -240,6 +240,43 @@ sup, sub {
   max-width: fit-content;
 }
 
+.gk-levels-floating {
+  position: fixed;
+  left: 12px;
+  bottom: 70px;
+  z-index: 1031;
+}
+
+.gk-layers-button {
+  width: 58px;
+  height: 42px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.gk-layers-button-icon {
+  position: absolute;
+  opacity: 0.55;
+}
+
+.gk-layers-button-text {
+  position: relative;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 0.4px;
+}
+
+.gk-levels-image-window {
+  top: auto;
+  left: 12px;
+  bottom: 70px;
+  z-index: 1030;
+}
+
 @media (max-width:992px) {
   .system-types-panel {
     top: 57px;
@@ -256,6 +293,15 @@ sup, sub {
   }
   .navbar-nav {
     align-items: center;
+  }
+  .gk-levels-floating {
+    display: none;
+  }
+  .gk-levels-image-window {
+    display: none;
+  }
+  .GK-layers-image {
+    width: min(566px, calc(100vw - 48px));
   }
 }
 
