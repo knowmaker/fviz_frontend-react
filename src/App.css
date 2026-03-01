@@ -240,6 +240,89 @@ sup, sub {
   max-width: fit-content;
 }
 
+.footbar-content {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.footbar-left-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.footbar-html-input {
+  min-width: 60px;
+  max-width: 60px;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid #b2bac6;
+  background: #ffffff;
+  color: #1f2937;
+  font-weight: 600;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.04);
+  pointer-events: none;
+  margin-right: 0;
+}
+
+.footbar-mode-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 1px;
+  white-space: nowrap;
+}
+
+.footbar-mobile-mode {
+  display: none;
+}
+
+.footbar-mode-group .form-check {
+  padding-left: 0;
+  margin: 0;
+}
+
+.footbar-mode-group .form-check-input {
+  float: none;
+  margin-left: 0;
+  margin-top: 0;
+}
+
+.footbar-mode-text {
+  font-size: 15px;
+}
+
+.footbar-center-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(36vw, 520px);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.2;
+  text-align: center;
+  pointer-events: none;
+}
+
+.footbar-right-group {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.footbar-save-button {
+  margin-right: 0;
+}
+
 .gk-levels-floating {
   position: fixed;
   left: 12px;
@@ -251,7 +334,7 @@ sup, sub {
   position: fixed;
   right: 24px;
   bottom: 70px;
-  z-index: 1031;
+  z-index: 1028;
 }
 
 .gk-layers-button {
@@ -298,8 +381,47 @@ sup, sub {
   .footbar-input {
     margin: 5px;
   }
-  .navbar-nav {
+  .footbar-mobile-mode {
+    display: flex;
+    margin-left: auto;
+    margin-right: 6px;
+  }
+  .footbar-desktop-mode {
+    display: none;
+  }
+  #footerSupportedContent {
+    padding-top: 8px;
+  }
+  .footbar-content {
+    flex-direction: column;
     align-items: center;
+    gap: 8px;
+  }
+  .footbar-left-group {
+    display: none;
+  }
+  #outLT,
+  #outGK {
+    display: none;
+  }
+  .footbar-center-title {
+    position: static;
+    left: auto;
+    transform: none;
+    max-width: calc(100vw - 28px);
+    font-size: 13px;
+  }
+  .footbar-mode-group {
+    margin-left: 0;
+    gap: 6px;
+  }
+  .footbar-mode-text {
+    font-size: 13px;
+  }
+  .footbar-right-group {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
   }
   .gk-levels-floating {
     display: none;

@@ -29,6 +29,14 @@ export default function Footbar({ hoveredCell, selectedLawState, getImage, table
     cellGK = hoveredCell.GKLayer ? `G<sup>${formatIndicateForSup(hoveredCell.GKLayer.g_indicate)}</sup>K<sup>${formatIndicateForSup(hoveredCell.GKLayer.k_indicate)}</sup>` : "-"
   }
 
+  const tableViewTitle = tableViewState.tableView?.title || "-";
+  const maxTitleLength = 44;
+  const shortTableViewTitle = tableViewTitle.length > maxTitleLength
+    ? `${tableViewTitle.slice(0, maxTitleLength - 1)}…`
+    : tableViewTitle;
+  const centeredTitle = `Текущее представление: ${shortTableViewTitle}`;
+  const centeredTitleFull = `Текущее представление: ${tableViewTitle}`;
+
   const removeCurrentLaw = () => {
     selectedLawState.setSelectedLaw({ name: null, cells: [], law_group_id: null });
   };
@@ -61,10 +69,26 @@ export default function Footbar({ hoveredCell, selectedLawState, getImage, table
     GKLayersImageModalVisibility.setVisibility(true)
   }
 
-  const setShowModeState = () => {
-    const isSwitchActive = document.getElementById("flexSwitchCheck").checked
-    showModeState.setShowMode(isSwitchActive)
+  const setShowModeState = (event) => {
+    showModeState.setShowMode(event.target.checked)
   }
+
+  const renderModeSwitch = (switchId, extraClass = "") => (
+    <div className={`footbar-mode-group ${extraClass}`.trim()}>
+      <span className="footbar-mode-text">Режим законов</span>
+      <div className="form-check form-switch m-0">
+        <input
+          className="form-check-input"
+          type="checkbox"
+          role="switch"
+          id={switchId}
+          onChange={setShowModeState}
+          checked={showModeState.showMode}
+        />
+      </div>
+      <span className="footbar-mode-text">Режим величин</span>
+    </div>
+  );
 
   return (
     <>
@@ -85,28 +109,23 @@ export default function Footbar({ hoveredCell, selectedLawState, getImage, table
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#footerSupportedContent" aria-controls="footerSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span className="navbar-toggler-icon"></span>
         </button>
+        {renderModeSwitch("flexSwitchCheckMobile", "footbar-mobile-mode")}
         <div className="collapse navbar-collapse" id="footerSupportedContent">
-          <div className="navbar-nav">
-            <div className="diminput footbar-input" id="outLT">
-              <div className="v-align" dangerouslySetInnerHTML={{ __html: cellLT }} />
+          <div className="footbar-content">
+            <div className="footbar-left-group">
+              <div className="diminput footbar-input footbar-html-input" id="outLT" aria-disabled="true">
+                <div className="v-align" dangerouslySetInnerHTML={{ __html: cellLT }} />
+              </div>
+              <div className="diminput footbar-input footbar-html-input" id="outGK" aria-disabled="true">
+                <div className="v-align" dangerouslySetInnerHTML={{ __html: cellGK }} />
+              </div>
+              {renderModeSwitch("flexSwitchCheckDesktop", "footbar-desktop-mode")}
             </div>
-            <div className="diminput footbar-input" id="outGK">
-              <div className="v-align" dangerouslySetInnerHTML={{ __html: cellGK }} />
-            </div>
-            {isAuthorized ? (
-              <>
-                <div className="nameinput footbar-input" id="outName">
-                  <div className="v-align " dangerouslySetInnerHTML={{ __html: tableViewState.tableView.title }}></div>
-                </div>
-                {tableViewState.tableView.id !== 0 ? (
-                  <Button className="btn-sm btn-primary btn footbar-button" aria-current="page" onClick={(e) => updateTableView(e)}>Сохранить представление</Button>
-                ) : null}
-              </>
-            ) : null}
-            <label className="form-check-label">Режим законов</label>
-            <div className="form-check form-switch">
-              <input className="form-check-input" type="checkbox" role="switch" id="flexSwitchCheck" onClick={(e) => { setShowModeState(e); }} />
-              <label className="form-check-label" htmlFor="flexSwitchCheck">Режим просмотра</label>
+            <div className="footbar-center-title" title={centeredTitleFull}>{centeredTitle}</div>
+            <div className="footbar-right-group">
+              {isAuthorized && tableViewState.tableView.id !== 0 ? (
+                <Button className="btn-sm btn-primary btn footbar-button footbar-save-button" aria-current="page" onClick={(e) => updateTableView(e)}>Сохранить представление</Button>
+              ) : null}
             </div>
           </div>
         </div>
