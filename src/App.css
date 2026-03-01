@@ -145,7 +145,7 @@ sup, sub {
   border: 1px solid #ccc;
   border-top: none;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-  z-index: 1031;
+  z-index: 1020;
   overflow: auto;
   display: flex;
   flex-wrap: wrap;
@@ -201,6 +201,10 @@ sup, sub {
 
 .nav-link {
   cursor: pointer;
+}
+
+.navbar-user-name {
+  display: inline;
 }
 
 .diminput {
@@ -431,6 +435,9 @@ sup, sub {
   }
   .GK-layers-image {
     width: min(566px, calc(100vw - 48px));
+  }
+  .navbar-user-name {
+    display: none;
   }
 }
 

@@ -36,6 +36,22 @@ export default function Navbar({revStates, modalsVisibility}) {
         }
     };
 
+    const collapseNavbarIfExpanded = () => {
+        const navbarContent = document.getElementById("navbarSupportedContent");
+        if (navbarContent && navbarContent.classList.contains("show")) {
+            navbarContent.classList.remove("show");
+            const toggler = document.querySelector('button[data-bs-target="#navbarSupportedContent"]');
+            if (toggler) {
+                toggler.setAttribute("aria-expanded", "false");
+            }
+        }
+    };
+
+    const runAndCollapse = (action) => () => {
+        action();
+        collapseNavbarIfExpanded();
+    };
+
     const openRegistrationForm = () => {
 
         document.querySelector('#nav-tab button[data-bs-target="#register"]').click()
@@ -104,9 +120,9 @@ export default function Navbar({revStates, modalsVisibility}) {
     if (userInfoState.userProfile) {
         loginButtons = (
             <>
-                <span onClick={() => openProfileForm()} style={{cursor: "pointer"}}>{userInfoState.userProfile.first_name} (Мой профиль)</span>
+                <span onClick={runAndCollapse(openProfileForm)} style={{cursor: "pointer"}}><span className="navbar-user-name">{userInfoState.userProfile.first_name} </span>(Мой профиль)</span>
                 <span style={{margin:10}}>/</span>
-                <span onClick={() => signOut()} style={{cursor: "pointer"}}>Выход</span>
+                <span onClick={runAndCollapse(signOut)} style={{cursor: "pointer"}}>Выход</span>
             </>
         )
     }
@@ -114,9 +130,9 @@ export default function Navbar({revStates, modalsVisibility}) {
     {
         loginButtons = (
             <>
-                <span onClick={() => openLoginForm()} style={{cursor: "pointer"}}>Вход</span>
+                <span onClick={runAndCollapse(openLoginForm)} style={{cursor: "pointer"}}>Вход</span>
                 <span style={{margin:10}}>/</span>
-                <span onClick={() => openRegistrationForm()} style={{cursor: "pointer"}}>Регистрация</span>
+                <span onClick={runAndCollapse(openRegistrationForm)} style={{cursor: "pointer"}}>Регистрация</span>
             </>
         )
     }
@@ -133,12 +149,12 @@ export default function Navbar({revStates, modalsVisibility}) {
                     <div className="navbar-nav">
                         {isAuthorized ?
                         (<>
-                        <div className={`nav-link ${undoStack.length === 0 ? "" : "active"}`} aria-current="page" onClick={undo}>↺Отмена</div>
-                        <div className={`nav-link ${redoStack.length === 0 ? "" : "active"}`} aria-current="page" onClick={redo}>↻Возврат</div>
-                        <div className="nav-link active" aria-current="page" onClick={openTableViewsForm}>Представления</div>
-                        <div className="nav-link active" aria-current="page" onClick={openLawsMenu}>Законы</div>
-                        <div className="nav-link active" aria-current="page" onClick={openLawsGroupsForm}>Группы законов</div>
-                        <div className="nav-link active" aria-current="page" onClick={openGKColorsEditForm}>Системные кластеры</div>
+                        <div className={`nav-link ${undoStack.length === 0 ? "" : "active"}`} aria-current="page" onClick={runAndCollapse(undo)}>↺Отмена</div>
+                        <div className={`nav-link ${redoStack.length === 0 ? "" : "active"}`} aria-current="page" onClick={runAndCollapse(redo)}>↻Возврат</div>
+                        <div className="nav-link active" aria-current="page" onClick={runAndCollapse(openTableViewsForm)}>Представления</div>
+                        <div className="nav-link active" aria-current="page" onClick={runAndCollapse(openLawsMenu)}>Законы</div>
+                        <div className="nav-link active" aria-current="page" onClick={runAndCollapse(openLawsGroupsForm)}>Группы законов</div>
+                        <div className="nav-link active" aria-current="page" onClick={runAndCollapse(openGKColorsEditForm)}>Системные кластеры</div>
                         </>) : (null)}
                     </div>
                 </div>
