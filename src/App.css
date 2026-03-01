@@ -247,8 +247,15 @@ sup, sub {
   z-index: 1031;
 }
 
+.screenshot-floating {
+  position: fixed;
+  right: 24px;
+  bottom: 70px;
+  z-index: 1031;
+}
+
 .gk-layers-button {
-  width: 58px;
+  width: 60px;
   height: 42px;
   padding: 0;
   display: inline-flex;

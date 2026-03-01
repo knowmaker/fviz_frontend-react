@@ -4,7 +4,7 @@ import { showMessage } from '../misc/message.js';
 import setStateFromGetAPI, { patchDataToAPI, isResponseSuccessful } from '../misc/api.js';
 import { Button } from '../components/ButtonWithLoad.js';
 import { formatIndicateForSup } from '../misc/converters.js';
-import { IconLayersSubtract } from '@tabler/icons-react';
+import { IconCamera, IconLayersSubtract } from '@tabler/icons-react';
 
 const API_BASE = () => process.env.REACT_APP_API_LINK;
 
@@ -74,6 +74,12 @@ export default function Footbar({ hoveredCell, selectedLawState, getImage, table
           <span className="gk-layers-button-text">GK</span>
         </div>
       </div>
+      <div className="screenshot-floating">
+        <div className="btn-sm btn-primary btn gk-layers-button" aria-current="page" onClick={(e) => downloadScreenshot(e)} title="Скачать скриншот" aria-label="Скачать скриншот">
+          <IconCamera size={44} stroke={1.8} aria-hidden="true" className="gk-layers-button-icon" />
+          <span className="gk-layers-button-text">ФОТО</span>
+        </div>
+      </div>
       <nav className="navbar navbar-expand-lg fixed-bottom bg-body-tertiary">
       <div className="container-fluid">
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#footerSupportedContent" aria-controls="footerSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -97,7 +103,6 @@ export default function Footbar({ hoveredCell, selectedLawState, getImage, table
                 ) : null}
               </>
             ) : null}
-            <Button className="btn-sm btn-primary btn footbar-button" aria-current="page" onClick={(e) => downloadScreenshot(e)}>Скачать скриншот</Button>
             <label className="form-check-label">Режим законов</label>
             <div className="form-check form-switch">
               <input className="form-check-input" type="checkbox" role="switch" id="flexSwitchCheck" onClick={(e) => { setShowModeState(e); }} />
