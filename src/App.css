@@ -321,10 +321,27 @@ sup, sub {
   margin-left: auto;
   display: flex;
   align-items: center;
+  gap: 6px;
 }
 
 .footbar-save-button {
   margin-right: 0;
+}
+
+.footbar-delete-slot {
+  min-width: 110px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.footbar-delete-button {
+  margin-right: 0;
+}
+
+.footbar-delete-placeholder {
+  width: 100%;
+  height: 31px;
+  visibility: hidden;
 }
 
 .gk-levels-floating {
@@ -424,6 +441,13 @@ sup, sub {
   }
   .footbar-right-group {
     margin-left: 0;
+    width: 100%;
+    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .footbar-delete-slot {
+    min-width: 0;
     width: 100%;
     justify-content: center;
   }

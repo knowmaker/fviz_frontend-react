@@ -126,16 +126,16 @@ export default function Footbar({ hoveredCell, selectedLawState, getImage, table
               {isAuthorized && tableViewState.tableView.id !== 0 ? (
                 <Button className="btn-sm btn-primary btn footbar-button footbar-save-button" aria-current="page" onClick={(e) => updateTableView(e)}>Сохранить представление</Button>
               ) : null}
+              <div className="footbar-delete-slot">
+                {selectedLawState.selectedLaw.cells.length >= 1 ? (
+                  <div className="btn-sm btn-primary btn footbar-button footbar-delete-button" aria-current="page" onClick={removeCurrentLaw}>Стереть закон</div>
+                ) : (
+                  <div className="footbar-delete-placeholder" aria-hidden="true"></div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-        {selectedLawState.selectedLaw.cells.length >= 1 ? (
-          <>
-            <div className="navbar-text">
-              <div className="btn-sm btn-primary btn footbar-button" aria-current="page" onClick={removeCurrentLaw}>Стереть закон</div>
-            </div>
-          </>
-        ) : null}
       </div>
     </nav>
     </>
